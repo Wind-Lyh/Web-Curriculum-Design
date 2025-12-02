@@ -11,10 +11,10 @@ import java.sql.Statement;
  * 负责管理数据库连接、关闭资源
  */
 public class DBUtil {
-    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
     private static final String URL = "jdbc:mysql://localhost:3306/community_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "4797";
 
     static {
         try {

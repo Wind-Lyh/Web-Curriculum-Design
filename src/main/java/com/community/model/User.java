@@ -3,20 +3,20 @@ package com.community.model;
 import java.util.Date;
 
 public class User {
-    private Integer id;
-    private String username;
-    private String password;
-    private String email;
-    private String phone;
-    private String avatarUrl;
-    private String nickname;
-    private String signature;
-    private Integer points;
-    private Integer level;
-    private Integer role; // 0:普通用户, 1:管理员
-    private Integer status; // 0:正常, 1:封禁
-    private Date createTime;
-    private Date lastLoginTime;
+    private Integer id;            // 用户ID，对应users.id，主键自增
+    private String username;       // 用户名，对应users.username，唯一登录标识
+    private String password;       // 密码，对应users.password，加密存储
+    private String email;          // 邮箱，对应users.email，唯一联系方式
+    private String phone;          // 手机号，对应users.phone
+    private String avatarUrl;      // 头像地址，对应users.avatar_url，默认default_avatar.png
+    private String nickname;       // 昵称，对应users.nickname，用户显示名称
+    private String signature;      // 个性签名，对应users.signature
+    private Integer points;        // 积分，对应users.points，默认0
+    private Integer level;         // 等级，对应users.level，默认1
+    private Integer role;          // 角色：0普通用户，1管理员（数据库无直接对应字段）
+    private Integer status;        // 状态：0正常，1封禁，对应users.is_banned字段
+    private Date createTime;       // 创建时间，对应users.create_time，默认当前时间
+    private Date lastLoginTime;    // 最后登录时间，对应users.last_login_time
 
     // 构造方法
     public User() {

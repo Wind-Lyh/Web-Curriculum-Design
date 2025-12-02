@@ -3,10 +3,10 @@ package com.community.model;
 import java.util.Date;
 
 public class BrowseHistory {
-    private Integer id;
-    private Integer userId;
-    private Integer postId;
-    private Date browseTime;
+    private Integer id;         // 浏览记录ID，对应browse_history.id，主键自增
+    private Integer userId;     // 用户ID，对应browse_history.user_id，外键关联users.id
+    private Integer postId;     // 帖子ID，对应browse_history.post_id，外键关联posts.id
+    private Date browseTime;    // 浏览时间，对应browse_history.browse_time，默认当前时间
 
     public Integer getId() {
         return id;

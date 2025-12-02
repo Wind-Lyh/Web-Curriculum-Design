@@ -3,11 +3,11 @@ package com.community.model;
 import java.util.Date;
 
 public class Section {
-    private Integer id;
-    private String name;
-    private String description;
-    private Integer postCount;
-    private Date createTime;
+    private Integer id;         // 版块ID，对应sections.id，主键自增
+    private String name;        // 版块名称，对应sections.name
+    private String description; // 版块描述，对应sections.description
+    private Integer postCount;  // 帖子数量（统计字段，数据库无对应列）
+    private Date createTime;    // 创建时间，对应sections.create_time，默认当前时间
 
     public Section() {
         this.postCount = 0;

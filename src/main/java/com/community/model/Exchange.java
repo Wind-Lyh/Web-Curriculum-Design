@@ -3,12 +3,12 @@ package com.community.model;
 import java.util.Date;
 
 public class Exchange {
-    private Integer id;
-    private Integer userId;
-    private Integer goodsId;
-    private Integer quantity;
-    private Integer totalCost;
-    private Date createTime;
+    private Integer id;         // 兑换记录ID，对应exchanges.id，主键自增
+    private Integer userId;     // 用户ID，对应exchanges.user_id，外键关联users.id
+    private Integer goodsId;    // 道具ID，对应exchanges.goods_id，外键关联virtual_goods.id
+    private Integer quantity;   // 兑换数量，对应exchanges.quantity，默认1
+    private Integer totalCost;  // 总花费积分，对应exchanges.total_cost
+    private Date createTime;    // 兑换时间，对应exchanges.create_time，默认当前时间
 
     public Exchange(Integer id, Integer userId, Integer goodsId, Integer quantity, Integer totalCost, Date createTime) {
         this.id = id;

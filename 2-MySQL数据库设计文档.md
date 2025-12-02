@@ -36,7 +36,7 @@
 | --------------- | ------------ | -------------------------- | ---------------------------- |
 | id              | INT          | 用户ID，主键               | PRIMARY KEY, AUTO_INCREMENT  |
 | username        | VARCHAR(50)  | 用户名                     | UNIQUE, NOT NULL             |
-| password        | VARCHAR(255) | 密码（存储加密后的哈希值） | NOT NULL                     |
+| password        | VARCHAR(255) | 密码 | NOT NULL                     |
 | email           | VARCHAR(100) | 邮箱                       | UNIQUE                       |
 | phone           | VARCHAR(20)  | 手机号                     |                              |
 | avatar_url      | VARCHAR(255) | 头像URL                    | DEFAULT 'default_avatar.png' |

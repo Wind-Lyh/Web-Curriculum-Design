@@ -2,10 +2,6 @@ package com.community.util;
 
 import java.util.regex.Pattern;
 
-/**
- * 字符串处理工具类
- * 提供常用的字符串操作方法
- */
 public class StringUtil {
 
     //判断字符串是否为空或null，为空返回true，否则返回false
@@ -43,41 +39,6 @@ public class StringUtil {
         }
         String usernameRegex = "^[a-zA-Z0-9_]{3,20}$";
         return Pattern.matches(usernameRegex, username);
-    }
-
-    /**
-     * 转义HTML特殊字符，防止XSS攻击
-     * @param input 输入字符串
-     * @return 转义后的字符串
-     */
-    public static String escapeHtml(String input) {
-        if (isEmpty(input)) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            switch (c) {
-                case '<':
-                    sb.append("&lt;");
-                    break;
-                case '>':
-                    sb.append("&gt;");
-                    break;
-                case '"':
-                    sb.append("&quot;");
-                    break;
-                case '\'':
-                    sb.append("&#39;");
-                    break;
-                case '&':
-                    sb.append("&amp;");
-                    break;
-                default:
-                    sb.append(c);
-            }
-        }
-        return sb.toString();
     }
 
     //去除字符串两端的空格，如果为null则返回空字符串

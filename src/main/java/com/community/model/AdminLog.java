@@ -3,14 +3,14 @@ package com.community.model;
 import java.util.Date;
 
 public class AdminLog {
-    private Integer id;
-    private Integer adminId;
-    private String actionType;
-    private String targetType;
-    private Integer targetId;
-    private String details;
-    private String ipAddress;
-    private Date createTime;
+    private Integer id;         // 操作日志ID，对应admin_logs.id，主键自增
+    private Integer adminId;    // 管理员ID，对应admin_logs.admin_id，外键关联users.id
+    private String actionType;  // 操作类型，对应admin_logs.action_type
+    private String targetType;  // 目标类型，对应admin_logs.target_type
+    private Integer targetId;   // 目标ID，对应admin_logs.target_id
+    private String details;     // 操作详情，对应admin_logs.details
+    private String ipAddress;   // IP地址，对应admin_logs.ip_address
+    private Date createTime;    // 操作时间，对应admin_logs.create_time，默认当前时间
 
     public Integer getId() {
         return id;
@@ -87,6 +87,4 @@ public class AdminLog {
         this.ipAddress = ipAddress;
         this.createTime = createTime;
     }
-
-
 }

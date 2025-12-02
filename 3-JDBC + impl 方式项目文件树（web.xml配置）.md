@@ -354,14 +354,6 @@
 - **executeQuery**：执行查询操作
 - **executeUpdate**：执行更新操作
 
-### SecurityUtil.java
-**作用**：安全工具类
-**方法**：
-- **encryptPassword**：密码加密
-- **verifyPassword**：验证密码
-- **generateToken**：生成安全令牌
-- **checkSQLInjection**：检查SQL注入
-
 ### StringUtil.java
 **作用**：字符串处理工具
 **方法**：

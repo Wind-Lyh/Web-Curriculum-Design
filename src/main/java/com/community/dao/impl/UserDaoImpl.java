@@ -3,7 +3,6 @@ package com.community.dao.impl;
 import com.community.dao.UserDao;
 import com.community.model.User;
 import com.community.util.DBUtil;
-import com.community.util.SecurityUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public class UserDaoImpl implements UserDao {
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, SecurityUtil.encryptPassword(user.getPassword()));
+            pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getEmail());
             pstmt.setString(4, user.getPhone());
             pstmt.setString(5, user.getAvatarUrl());
@@ -199,7 +198,7 @@ public class UserDaoImpl implements UserDao {
             conn = DBUtil.getConnection();
             String sql = "UPDATE users SET password = ? WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, SecurityUtil.encryptPassword(newPassword));
+            pstmt.setString(1, newPassword);
             pstmt.setInt(2, userId);
 
             return pstmt.executeUpdate();

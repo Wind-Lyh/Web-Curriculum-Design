@@ -99,7 +99,6 @@ community-system/
 │   │   │           │   ├── StringUtil.java           # 字符串工具类
 │   │   │           │   ├── DateUtil.java             # 日期工具类
 │   │   │           │   ├── FileUtil.java             # 文件工具类
-│   │   │           │   ├── SecurityUtil.java         # 安全工具类（密码加密）
 │   │   │           │   ├── JsonUtil.java             # JSON工具类
 │   │   │           │   ├── PageUtil.java             # 分页工具类
 │   │   │           │   ├── ImageUtil.java            # 图片处理工具类
@@ -120,7 +119,6 @@ community-system/
 │   │   └── webapp/
 │   │       ├── WEB-INF/
 │   │       │   ├── web.xml                 # Web配置文件（核心配置文件）
-│   │       │   └── lib/                    # 依赖库
 │   │       ├── static/
 │   │       │   ├── css/
 │   │       │   │   ├── style.css          # 主样式文件
@@ -298,7 +296,6 @@ community-system/
 | `StringUtil.java`   | 字符串工具类   | isEmpty(), isEmail(), isPhone(), escapeHtml()        |
 | `DateUtil.java`     | 日期工具类     | formatDate(), parseDate(), getCurrentTime()          |
 | `FileUtil.java`     | 文件工具类     | getFileExtension(), validateFileType(), saveFile()   |
-| `SecurityUtil.java` | 安全工具类     | encryptPassword(), verifyPassword(), generateToken() |
 | `JsonUtil.java`     | JSON工具类     | toJson(), fromJson(), parseJsonArray()               |
 | `PageUtil.java`     | 分页工具类     | calculateTotalPages(), getPaginationData()           |
 | `ImageUtil.java`    | 图片处理工具类 | resizeImage(), compressImage(), generateThumbnail()  |

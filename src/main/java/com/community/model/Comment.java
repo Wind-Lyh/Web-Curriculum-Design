@@ -3,20 +3,20 @@ package com.community.model;
 import java.util.Date;
 
 public class Comment {
-    private Integer id;
-    private String content;
-    private Integer userId;
-    private Integer postId;
-    private Integer parentId; // 0:直接评论帖子, >0:回复的评论ID
-    private Integer likeCount;
-    private Integer status; // 0:正常, 1:删除
-    private Date createTime;
-    private Date updateTime;
+    private Integer id;         // 评论ID，对应comments.id，主键自增
+    private String content;     // 评论内容，对应comments.content
+    private Integer userId;     // 用户ID，对应comments.user_id，外键关联users.id
+    private Integer postId;     // 帖子ID，对应comments.post_id，外键关联posts.id
+    private Integer parentId;   // 父评论ID，对应comments.parent_id，0表示直接评论帖子
+    private Integer likeCount;  // 点赞数，对应comments.like_count，默认0
+    private Integer status;     // 状态：0正常，1删除，对应comments.is_deleted扩展
+    private Date createTime;    // 创建时间，对应comments.create_time，默认当前时间
+    private Date updateTime;    // 更新时间，对应comments.update_time，更新时自动更新
 
-    // 关联的用户信息
-    private String username;
-    private String nickname;
-    private String avatarUrl;
+    // 关联字段（用于显示，不直接对应数据库表）
+    private String username;    // 评论用户登录名，从users.username关联获取
+    private String nickname;    // 评论用户昵称，从users.nickname关联获取
+    private String avatarUrl;   // 评论用户头像，从users.avatar_url关联获取
 
     public Comment() {
         this.likeCount = 0;

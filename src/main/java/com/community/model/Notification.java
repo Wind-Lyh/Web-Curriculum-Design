@@ -3,14 +3,14 @@ package com.community.model;
 import java.util.Date;
 
 public class Notification {
-    private Integer id;
-    private Integer userId;
-    private String type; // "reply":回复, "like":点赞, "system":系统通知
-    private String title;
-    private String content;
-    private Integer relatedId; // 关联的帖子/评论ID
-    private Integer isRead; // 0:未读, 1:已读
-    private Date createTime;
+    private Integer id;         // 通知ID，对应notifications.id，主键自增
+    private Integer userId;     // 接收用户ID，对应notifications.user_id，外键关联users.id
+    private String type;        // 通知类型：reply回复,like点赞,system系统通知，对应notifications.type枚举
+    private String title;       // 通知标题，对应notifications.title
+    private String content;     // 通知内容，对应notifications.content
+    private Integer relatedId;  // 关联ID，对应notifications.related_id，关联帖子/评论ID
+    private Integer isRead;     // 已读状态：0未读，1已读，对应notifications.is_read，默认false
+    private Date createTime;    // 创建时间，对应notifications.create_time，默认当前时间
 
     public Notification() {
         this.isRead = 0;

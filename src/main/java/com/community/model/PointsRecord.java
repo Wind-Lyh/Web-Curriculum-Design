@@ -3,12 +3,12 @@ package com.community.model;
 import java.util.Date;
 
 public class PointsRecord {
-    private Integer id;
-    private Integer userId;
-    private String changeType; // "register","login","post","comment","like_received","exchange"
-    private Integer changeAmount; // 正数:增加, 负数:减少
-    private String description;
-    private Date createTime;
+    private Integer id;            // 积分记录ID，对应points_records.id，主键自增
+    private Integer userId;        // 用户ID，对应points_records.user_id，外键关联users.id
+    private String changeType;     // 变更类型，对应points_records.change_type的枚举值
+    private Integer changeAmount;  // 变更数量，对应points_records.change_amount，正负表示增减
+    private String description;    // 变更描述，对应points_records.description
+    private Date createTime;       // 创建时间，对应points_records.create_time，默认当前时间
 
     public PointsRecord() {
         this.createTime = new Date();

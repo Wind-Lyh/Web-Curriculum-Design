@@ -3,15 +3,15 @@ package com.community.model;
 import java.util.Date;
 
 public class Attachment {
-    private Integer id;
-    private String filename;
-    private String filePath;
-    private String fileType;
-    private Long fileSize;
-    private Integer userId;
-    private Integer postId;
-    private Integer commentId;
-    private Date createTime;
+    private Integer id;         // 附件ID，对应attachments.id，主键自增
+    private String filename;    // 文件名，对应attachments.filename
+    private String filePath;    // 文件路径，对应attachments.file_path
+    private String fileType;    // 文件类型，对应attachments.file_type
+    private Long fileSize;      // 文件大小（字节），对应attachments.file_size
+    private Integer userId;     // 上传用户ID，对应attachments.user_id，外键关联users.id
+    private Integer postId;     // 关联帖子ID，对应attachments.post_id，外键关联posts.id
+    private Integer commentId;  // 关联评论ID，对应attachments.comment_id，外键关联comments.id
+    private Date createTime;    // 上传时间，对应attachments.create_time，默认当前时间
 
     public Attachment() {
         this.createTime = new Date();

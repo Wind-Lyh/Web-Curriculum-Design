@@ -3,13 +3,13 @@ package com.community.model;
 import java.util.Date;
 
 public class VirtualGood {
-    private Integer id;
-    private String name;
-    private String description;
-    private Integer price;
-    private Integer stock; // -1:无限库存
-    private Integer isAvailable; // 0:不可用, 1:可用
-    private Date createTime;
+    private Integer id;           // 道具ID，对应virtual_goods.id，主键自增
+    private String name;          // 道具名称，对应virtual_goods.name
+    private String description;   // 道具描述，对应virtual_goods.description
+    private Integer price;        // 价格，对应virtual_goods.price，所需积分
+    private Integer stock;        // 库存，对应virtual_goods.stock，-1表示无限库存
+    private Integer isAvailable;  // 可用状态：0不可用，1可用，对应virtual_goods.is_available
+    private Date createTime;      // 创建时间，对应virtual_goods.create_time，默认当前时间
 
     public Integer getId() {
         return id;
