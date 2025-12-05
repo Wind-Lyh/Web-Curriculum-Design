@@ -17,6 +17,36 @@ public class User {
     private Integer status;        // 状态：0正常，1封禁，对应users.is_banned字段
     private Date createTime;       // 创建时间，对应users.create_time，默认当前时间
     private Date lastLoginTime;    // 最后登录时间，对应users.last_login_time
+    private Integer is_admin;
+
+    public Integer getIs_admin() {
+        return is_admin;
+    }
+
+    public void setIs_admin(Integer is_admin) {
+        this.is_admin = is_admin;
+    }
+
+
+
+    public User(Integer id, String username, String password, String email, String phone, String avatarUrl, String nickname, String signature, Integer points, Integer level, Integer role, Integer status, Date createTime, Date lastLoginTime, Integer is_admin) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.phone = phone;
+        this.avatarUrl = avatarUrl;
+        this.nickname = nickname;
+        this.signature = signature;
+        this.points = points;
+        this.level = level;
+        this.role = role;
+        this.status = status;
+        this.createTime = createTime;
+        this.lastLoginTime = lastLoginTime;
+        this.is_admin = is_admin;
+    }
+     //判断是否是管理员
 
     // 构造方法
     public User() {
@@ -25,7 +55,7 @@ public class User {
         this.role = 0;
         this.status = 0;
         this.createTime = new Date();
-        this.avatarUrl = "default_avatar.png";
+        this.avatarUrl = "/static/images/初始化头像.jpg";
     }
 
     public User(String username, String password, String email, String nickname) {

@@ -1,4 +1,3 @@
-<%@ page import="com.text.project.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     // 从session获取用户对象

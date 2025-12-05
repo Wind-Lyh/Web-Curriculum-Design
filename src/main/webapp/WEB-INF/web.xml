@@ -10,7 +10,7 @@
 
     <!-- 欢迎页面 -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>views/index.jsp</welcome-file>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
 
@@ -36,19 +36,29 @@
         <filter-class>com.community.filter.LoginFilter</filter-class>
         <init-param>
             <param-name>excludedUrls</param-name>
-            <param-value>/user/login.jsp,/user/register.jsp,/captcha,/static/,/home,/index.jsp</param-value>
+            <param-value>
+                /index.jsp,
+                /user/login.jsp,
+                /user/register.jsp,
+                /views/users/rotateCaptcha.jsp,
+                /views/users/slideCaptcha.jsp,
+                /captcha,
+                /static/,
+                /home,
+                /user/checkLogin,
+                /user/Captcha_Num,
+                /user/Captcha_Num_pd,
+                /user/rotateCaptcha,
+                /user/validateRotateCaptcha,
+                /user/slideCaptcha,
+                /user/validateSlideCaptcha,
+                /user/logout,
+                /user/loginWithRole,
+                /user/switchRole,
+                /user/getUserRoles
+            </param-value>
         </init-param>
     </filter>
-    <filter-mapping>
-        <filter-name>LoginFilter</filter-name>
-        <url-pattern>/user/*</url-pattern>
-        <url-pattern>/post/create</url-pattern>
-        <url-pattern>/post/edit</url-pattern>
-        <url-pattern>/comment/add</url-pattern>
-        <url-pattern>/like/*</url-pattern>
-        <url-pattern>/favorite/*</url-pattern>
-        <url-pattern>/points/*</url-pattern>
-    </filter-mapping>
 
     <!-- 3. 管理员权限过滤器 -->
     <filter>
@@ -165,16 +175,6 @@
     <servlet-mapping>
         <servlet-name>FileServlet</servlet-name>
         <url-pattern>/file/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- 验证码Servlet -->
-    <servlet>
-        <servlet-name>CaptchaServlet</servlet-name>
-        <servlet-class>com.community.controller.CaptchaServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>CaptchaServlet</servlet-name>
-        <url-pattern>/captcha</url-pattern>
     </servlet-mapping>
 
     <!-- 退出登录Servlet -->

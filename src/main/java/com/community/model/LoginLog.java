@@ -9,6 +9,14 @@ public class LoginLog {
     private String userAgent;   // 用户代理，对应login_logs.user_agent
     private Date loginTime;     // 登录时间，对应login_logs.login_time，默认当前时间
 
+    public LoginLog(Integer id, Integer userId, String ipAddress, String userAgent, Date loginTime) {
+        this.id = id;
+        this.userId = userId;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.loginTime = loginTime;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -49,7 +57,7 @@ public class LoginLog {
         this.loginTime = loginTime;
     }
 
-    public LoginLog(Integer id, Integer userId, String ipAddress, String userAgent, Date loginTime) {
+    public LoginLog() {
         this.id = id;
         this.userId = userId;
         this.ipAddress = ipAddress;

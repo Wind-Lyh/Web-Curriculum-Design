@@ -80,7 +80,7 @@ public class LoginFilter implements Filter {
             }
 
             // 跳转到登录页面
-            httpResponse.sendRedirect(contextPath + "/user?action=login");
+            httpResponse.sendRedirect(contextPath + "/index.jsp");
         }
     }
 
