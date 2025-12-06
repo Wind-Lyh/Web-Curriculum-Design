@@ -137,6 +137,14 @@ public interface UserService {
     boolean unbanUser(int userId);
 
     /**
+     * 重置用户密码
+     * @param userId 用户ID
+     * @param newPassword 新密码
+     * @return 重置结果
+     */
+    boolean resetPassword(int userId, String newPassword);
+
+    /**
      * 获取用户总数
      * @return 用户数量
      */

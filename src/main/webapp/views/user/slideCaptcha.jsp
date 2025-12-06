@@ -1,11 +1,11 @@
+<%@ page import="com.text.project.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.community.model.User" %>
 <%
     // 从session获取用户对象
-    User user = (User) session.getAttribute("user");
-    if (user == null) {
+    User currentUser = (User) session.getAttribute("currentUser");
+    if (currentUser == null) {
         // 如果没有用户信息，跳回登录页
-        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
         return;
     }
 %>
@@ -358,8 +358,11 @@
 </div>
 
 <script>
-    // 全局变量
-    const contextPath = '<%= request.getContextPath() %>';
+    var currentUser = {
+        id: <%= currentUser.getId() %>,
+        username: '<%= currentUser.getUsername() %>'
+    };
+    // 全局变量 - 滑动验证
     let currentSlidePosition = 0;
     let targetSlidePosition = 0;
     let puzzleYPosition = 110; // 默认垂直位置
@@ -369,9 +372,6 @@
     // 页面加载时初始化
     window.onload = function () {
         console.log('滑动验证页面加载完成');
-        console.log('Context Path:', contextPath);
-        console.log('当前用户:', '<%= user.getUsername() %>');
-
         loadSlideCaptcha();
         setupSlideDrag();
     };
@@ -380,13 +380,16 @@
     function loadSlideCaptcha() {
         console.log('加载滑动验证码');
 
-        showLoading('正在加载验证码...');
+        const params = new URLSearchParams();
+        params.append('action', 'generate');
+        params.append('captchaType', 'slide');
 
-        fetch(contextPath + '/user/slideCaptcha?action=slideCaptcha', {
-            method: 'GET',
+        fetch('<%= request.getContextPath() %>/imageCaptcha', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            },
+            body: params
         })
             .then(response => {
                 console.log('滑动验证码响应状态:', response.status);
@@ -400,7 +403,7 @@
                 if (data.success) {
                     handleSlideCaptchaResponse(data);
                 } else {
-                    showMessage('验证码加载失败: ' + (data.message || '未知错误'), false);
+                    showMessage('验证码加载失败: ' + (data.error || '未知错误'), false);
                 }
             })
             .catch(error => {
@@ -411,8 +414,8 @@
 
     // 处理滑动验证码响应
     function handleSlideCaptchaResponse(data) {
-        targetSlidePosition = data.targetPosition || 0;
-        puzzleYPosition = data.puzzleY || 110;
+        targetSlidePosition = data.targetValue;
+        puzzleYPosition = data.puzzleY || 110; // 使用后端返回的y坐标，默认110
 
         document.getElementById('targetPosition').textContent = targetSlidePosition;
 
@@ -421,14 +424,9 @@
         const puzzlePiece = document.getElementById('puzzlePiece');
         const targetLine = document.getElementById('targetLine');
 
-        if (data.backgroundImage) {
-            background.src = data.backgroundImage;
-        }
-
-        if (data.puzzleImage) {
-            puzzlePiece.style.backgroundImage = `url(${data.puzzleImage})`;
-            puzzlePiece.style.backgroundSize = 'cover';
-        }
+        background.src = data.backgroundImage;
+        puzzlePiece.style.backgroundImage = `url(${data.puzzleImage})`;
+        puzzlePiece.style.backgroundSize = 'cover';
 
         // 设置拼图块的垂直位置
         puzzlePiece.style.top = puzzleYPosition + 'px';
@@ -442,21 +440,16 @@
         updateSlidePosition();
 
         console.log('滑动验证码初始化完成，目标位置: ' + targetSlidePosition + '%, Y坐标: ' + puzzleYPosition);
-        hideLoading();
     }
 
     // 更新目标线位置
-    // 添加窗口大小变化时的更新函数
     function updateTargetLinePosition() {
         const targetLine = document.getElementById('targetLine');
         const container = document.getElementById('slideContainer');
-        if (!container || container.offsetWidth === 0) return;
-
         const containerWidth = container.offsetWidth;
+
         const targetPosition = (targetSlidePosition / 100) * containerWidth;
         targetLine.style.left = targetPosition + 'px';
-
-        console.log('更新目标线位置，容器宽度:', containerWidth, '目标位置:', targetPosition);
     }
 
     // 设置滑动拖拽功能
@@ -476,7 +469,7 @@
     function startSlideDrag(e) {
         e.preventDefault();
         isSlideDragging = true;
-        startSlideX = e.clientX;
+        startSlideX = e.clientX || e.touches[0].clientX;
 
         // 添加抓取效果
         document.getElementById('slideSlider').style.cursor = 'grabbing';
@@ -485,11 +478,22 @@
         console.log('开始滑动拖拽，初始位置:', currentSlidePosition);
     }
 
+    function touchSlideStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        isSlideDragging = true;
+        startSlideX = touch.clientX;
+
+        // 添加抓取效果
+        document.getElementById('slideSlider').style.cursor = 'grabbing';
+        document.getElementById('puzzlePiece').style.cursor = 'grabbing';
+    }
+
     function slideDrag(e) {
         if (!isSlideDragging) return;
         e.preventDefault();
 
-        const clientX = e.clientX;
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
         if (!clientX) return;
 
         const track = document.getElementById('slideTrack');
@@ -509,6 +513,7 @@
         // 更新起始位置
         startSlideX = clientX;
     }
+
 
     function stopSlideDrag() {
         if (!isSlideDragging) return;
@@ -558,10 +563,10 @@
         const puzzlePosition = (currentSlidePosition / 100) * maxPuzzlePosition;
 
         // 更新滑块位置
-        slider.style.left = trackPosition + "px";
+        slider.style.left = trackPosition+"px";
 
         // 更新拼图块位置 - 保持垂直位置不变
-        puzzlePiece.style.left = puzzlePosition + 'px';
+        puzzlePiece.style.left = puzzlePosition+'px';
 
         // 更新百分比显示
         percentDisplay.textContent = Math.round(currentSlidePosition);
@@ -580,13 +585,11 @@
     function validateSlide() {
         console.log('开始滑动验证，用户位置: ' + currentSlidePosition + '%, 目标位置: ' + targetSlidePosition + '%');
 
-        showLoading('正在验证...');
-
         const params = new URLSearchParams();
-        params.append('action', 'validateSlideCaptcha');
+        params.append('action', 'validate');
         params.append('position', Math.round(currentSlidePosition));
 
-        fetch(contextPath + '/user/validateSlideCaptcha', {
+        fetch('<%= request.getContextPath() %>/imageCaptcha', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -603,39 +606,29 @@
             .then(data => {
                 console.log('滑动验证响应数据:', data);
                 if (data.success) {
-                    showMessage(data.message || '验证成功', true, 2000);
+                    showMessage(data.message, true, 2000);
                     console.log('滑动验证成功，跳转到主页面');
 
                     // 使用服务端返回的跳转URL
                     setTimeout(() => {
-                        hideLoading();
                         if (data.redirectUrl) {
                             window.location.href = data.redirectUrl;
                         } else {
-                            // 获取角色页面
-                            const currentRole = <%= session.getAttribute("currentRole") != null ? session.getAttribute("currentRole") : 0 %>;
-                            let rolePage = '';
-                            switch(currentRole) {
-                                case 1: rolePage = 'admin/dashboard.jsp'; break;
-                                case 2: rolePage = 'moderator/panel.jsp'; break;
-                                default: rolePage = 'user/home.jsp';
-                            }
-                            window.location.href = contextPath + '/' + rolePage;
+                            // 备用跳转路径 - 修正为正确的路径
+                            window.location.href = '<%= request.getContextPath() %>/jsp/messages.jsp';
                         }
                     }, 2000);
                 } else {
-                    showMessage(data.message || '验证失败', false, 3000);
-                    hideLoading();
+                    showMessage(data.message, false, 3000);
                     // 验证失败时重新加载验证码
                     setTimeout(() => {
                         loadSlideCaptcha();
-                    }, 30000);
+                    }, 1000);
                 }
             })
             .catch(error => {
                 console.error('滑动验证错误:', error);
                 showMessage('验证失败: ' + error.message, false, 3000);
-                hideLoading();
             });
     }
 
@@ -647,7 +640,7 @@
 
     // 返回上一步
     function goBack() {
-        window.location.href = contextPath + '/index.jsp';
+        window.location.href = '<%= request.getContextPath() %>/login.jsp';
     }
 
     // 显示消息
@@ -655,27 +648,12 @@
         const messageDiv = document.getElementById('message');
         messageDiv.textContent = message;
         messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
-
-        if (duration > 0) {
-            setTimeout(() => {
-                if (messageDiv.textContent === message) {
-                    messageDiv.textContent = '';
-                    messageDiv.className = 'message';
-                }
-            }, duration);
-        }
-    }
-
-    // 显示加载中
-    function showLoading(message) {
-        showMessage(message || '处理中...', true, 0);
-    }
-
-    // 隐藏加载中
-    function hideLoading() {
-        const messageDiv = document.getElementById('message');
-        messageDiv.textContent = '';
-        messageDiv.className = 'message';
+        setTimeout(() => {
+            if (messageDiv.textContent === message) {
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
+            }
+        }, duration);
     }
 </script>
 </body>
