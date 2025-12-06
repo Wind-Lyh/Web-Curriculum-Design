@@ -12,8 +12,8 @@ import java.sql.Statement;
  */
 public class DBUtil {
     private static final String DRIVER = "com.mysql.jdbc.Driver";
-    private static final String URL = "jdbc:mysql://GYX/community_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8";
-    private static final String USERNAME = "GYX";
+    private static final String URL = "jdbc:mysql://localhost:3306/community_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8";
+    private static final String USERNAME = "root";
     private static final String PASSWORD = "4797";
 
     static {

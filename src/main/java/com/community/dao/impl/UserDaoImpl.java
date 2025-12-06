@@ -437,8 +437,8 @@ public class UserDaoImpl implements UserDao {
         user.setSignature(rs.getString("signature"));
         user.setPoints(rs.getInt("points"));
         user.setLevel(rs.getInt("level"));
-        user.setRole(rs.getInt("role"));
-        user.setStatus(rs.getInt("status"));
+        user.setRole(rs.getInt("is_admin"));
+        user.setStatus(rs.getInt("is_banned"));
         user.setCreateTime(rs.getTimestamp("create_time"));
         user.setLastLoginTime(rs.getTimestamp("last_login_time"));
         return user;
