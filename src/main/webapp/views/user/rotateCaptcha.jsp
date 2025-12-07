@@ -1,3 +1,4 @@
+<%@ page import="com.community.model.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     // 从session获取用户对象
@@ -425,7 +426,7 @@
 
         currentRotation = startRotation + angleDiff;
 
-        // 确保角度在0-360范围内
+        // 确保角度在0-360度范围内
         currentRotation = (currentRotation % 360 + 360) % 360;
 
         updateRotation();
