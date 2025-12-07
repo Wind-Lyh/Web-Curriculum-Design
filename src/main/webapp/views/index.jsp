@@ -873,7 +873,6 @@
             })
             .then(data => {
                 console.log('第一步验证响应数据:', data);
-
                 // 恢复按钮状态
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -881,14 +880,10 @@
                 if (data.success) {
                     showMessage(data.message, true);
                     console.log('第一步验证成功，跳转到第二层验证页面');
-
-                    // 根据返回的验证码类型，跳转到对应的JSP页面
                     setTimeout(() => {
                         // 确保URL正确拼接
                         let redirectUrl = data.redirectUrl;
-                        // 直接使用服务器返回的完整路径
                         console.log('最终跳转URL:', redirectUrl);
-
                         // 跳转到第二层验证页面
                         window.location.href = redirectUrl;
                     }, 1500);
@@ -927,17 +922,14 @@
                 // 恢复按钮状态
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-
                 showMessage('网络请求失败: ' + error.message, false);
-
                 setTimeout(() => {
                     refreshCaptchaSilent();
                 }, 1000);
             });
     }
 
-    // 显示消息
-    // 显示消息
+       // 显示消息
     function showMessage(message, isSuccess, duration = 3000) {
         const messageContainer = document.getElementById('messageContainer');
         if (!messageContainer) {

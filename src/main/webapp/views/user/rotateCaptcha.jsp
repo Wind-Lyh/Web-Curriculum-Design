@@ -5,7 +5,7 @@
     User user = (User) session.getAttribute("user");
     if (user == null) {
         // 如果没有用户信息，跳回登录页
-        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        response.sendRedirect(request.getContextPath() + "/views/index.jsp");
         return;
     }
 %>
@@ -308,11 +308,27 @@
     let startRotation = 0;
     let correctAngle = 0; // 后端返回的正确角度
 
+    // 时间配置常量
+    const TIMING_CONFIG = {
+        SUCCESS_MESSAGE: 1200,     // 成功消息显示1.2秒
+        ERROR_MESSAGE: 2500,       // 错误消息显示2.5秒
+        REDIRECT_DELAY: 1200,      // 跳转延迟1.2秒
+        REFRESH_CAPTCHA_DELAY: 2500, // 刷新验证码延迟2.5秒（与错误消息同步结束）
+        REFRESH_SUCCESS: 800,      // 刷新成功消息0.8秒
+        LOADING_ANIMATION: 300     // 加载动画0.3秒
+    };
+
     // 页面加载时初始化
     window.onload = function () {
         console.log('旋转验证页面加载完成');
         console.log('Context Path:', contextPath);
         console.log('当前用户:', '<%= user.getUsername() %>');
+
+        // 确保消息区域可见
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.style.display = 'block';
+        }
 
         loadRotateCaptcha();
         setupDragRotation();
@@ -363,7 +379,7 @@
             })
             .catch(error => {
                 console.error('加载验证码失败:', error);
-                showMessage('验证码加载失败: ' + error.message, false);
+                showMessage('验证码加载失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
                 hideLoading();
             });
     }
@@ -391,7 +407,7 @@
             console.log('使用base64Image，长度:', data.base64Image.length);
         } else {
             console.error('没有有效的图片数据');
-            showMessage('验证码图片数据异常', false);
+            showMessage('验证码图片数据异常', false, TIMING_CONFIG.ERROR_MESSAGE);
             hideLoading();
             return;
         }
@@ -408,7 +424,7 @@
 
         rotateImage.onerror = function() {
             console.error('图片加载失败');
-            showMessage('验证码图片加载失败', false);
+            showMessage('验证码图片加载失败', false, TIMING_CONFIG.ERROR_MESSAGE);
             hideLoading();
         };
     }
@@ -540,7 +556,7 @@
         params.append('action', 'validateRotateCaptcha');
         params.append('angle', Math.round(currentRotation));
 
-        fetch(contextPath + 'user/validateRotateCaptcha', {
+        fetch(contextPath + '/user/validateRotateCaptcha', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -557,7 +573,7 @@
             .then(data => {
                 console.log('旋转验证响应数据:', data);
                 if (data.success) {
-                    showMessage(data.message || '验证成功', true, 2000);
+                    showMessage(data.message || '验证成功', true, TIMING_CONFIG.SUCCESS_MESSAGE);
                     console.log('旋转验证成功，跳转到主页面');
 
                     // 使用服务端返回的跳转URL
@@ -576,20 +592,21 @@
                             }
                             window.location.href = contextPath + '/' + rolePage;
                         }
-                    }, 2000);
+                    }, TIMING_CONFIG.REDIRECT_DELAY);
                 } else {
-                    showMessage(data.message || '验证失败', false, 3000);
+                    showMessage(data.message || '验证失败', false, TIMING_CONFIG.ERROR_MESSAGE);
                     console.log('旋转验证失败，重新验证');
-                    hideLoading();
+
                     // 验证失败时重新加载验证码
                     setTimeout(() => {
+                        console.log('重新加载验证码');
                         loadRotateCaptcha();
-                    }, 30000);
+                    }, TIMING_CONFIG.REFRESH_CAPTCHA_DELAY);
                 }
             })
             .catch(error => {
                 console.error('旋转验证错误:', error);
-                showMessage('验证失败: ' + error.message, false, 3000);
+                showMessage('验证失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
                 hideLoading();
             });
     }
@@ -597,26 +614,33 @@
     // 刷新验证码
     function refreshCaptcha() {
         loadRotateCaptcha();
-        showMessage('验证码已刷新', true, 1000);
+        showMessage('验证码已刷新', true, TIMING_CONFIG.REFRESH_SUCCESS);
     }
 
     // 返回上一步
     function goBack() {
-        window.location.href = contextPath + '/index.jsp';
+        window.history.back();
     }
 
     // 显示消息
-    function showMessage(message, isSuccess, duration = 3000) {
+    function showMessage(message, isSuccess, duration = 2000) {
         const messageDiv = document.getElementById('message');
+        console.log('显示消息:', message, '持续时间:', duration, 'ms');
+
+        // 先清除可能存在的定时器
+        if (messageDiv.clearTimeoutId) {
+            clearTimeout(messageDiv.clearTimeoutId);
+        }
+
         messageDiv.textContent = message;
         messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+        messageDiv.style.display = 'block'; // 确保显示
 
         if (duration > 0) {
-            setTimeout(() => {
-                if (messageDiv.textContent === message) {
-                    messageDiv.textContent = '';
-                    messageDiv.className = 'message';
-                }
+            messageDiv.clearTimeoutId = setTimeout(() => {
+                console.log('清除消息:', message);
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
             }, duration);
         }
     }

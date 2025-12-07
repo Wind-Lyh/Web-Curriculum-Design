@@ -5,7 +5,7 @@
     User user = (User) session.getAttribute("user");
     if (user == null) {
         // 如果没有用户信息，跳回登录页
-        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        response.sendRedirect(request.getContextPath() + "/views/index.jsp");
         return;
     }
 %>
@@ -366,14 +366,33 @@
     let isSlideDragging = false;
     let startSlideX = 0;
 
+    // 时间配置常量 - 与旋转验证保持一致
+    const TIMING_CONFIG = {
+        SUCCESS_MESSAGE: 1200,     // 成功消息显示1.2秒
+        ERROR_MESSAGE: 2500,       // 错误消息显示2.5秒
+        REDIRECT_DELAY: 1200,      // 跳转延迟1.2秒
+        REFRESH_CAPTCHA_DELAY: 2500, // 刷新验证码延迟2.5秒（与错误消息同步结束）
+        REFRESH_SUCCESS: 800,      // 刷新成功消息0.8秒
+        LOADING_ANIMATION: 300     // 加载动画0.3秒
+    };
+
     // 页面加载时初始化
     window.onload = function () {
         console.log('滑动验证页面加载完成');
         console.log('Context Path:', contextPath);
         console.log('当前用户:', '<%= user.getUsername() %>');
 
+        // 确保消息区域可见
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.style.display = 'block';
+        }
+
         loadSlideCaptcha();
         setupSlideDrag();
+
+        // 添加窗口大小变化监听
+        window.addEventListener('resize', updateTargetLinePosition);
     };
 
     // 加载滑动验证码
@@ -400,12 +419,12 @@
                 if (data.success) {
                     handleSlideCaptchaResponse(data);
                 } else {
-                    showMessage('验证码加载失败: ' + (data.message || '未知错误'), false);
+                    showMessage('验证码加载失败: ' + (data.message || '未知错误'), false, TIMING_CONFIG.ERROR_MESSAGE);
                 }
             })
             .catch(error => {
                 console.error('滑动验证码请求错误:', error);
-                showMessage('验证码加载失败: ' + error.message, false);
+                showMessage('验证码加载失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
             });
     }
 
@@ -446,7 +465,6 @@
     }
 
     // 更新目标线位置
-    // 添加窗口大小变化时的更新函数
     function updateTargetLinePosition() {
         const targetLine = document.getElementById('targetLine');
         const container = document.getElementById('slideContainer');
@@ -603,7 +621,7 @@
             .then(data => {
                 console.log('滑动验证响应数据:', data);
                 if (data.success) {
-                    showMessage(data.message || '验证成功', true, 2000);
+                    showMessage(data.message || '验证成功', true, TIMING_CONFIG.SUCCESS_MESSAGE);
                     console.log('滑动验证成功，跳转到主页面');
 
                     // 使用服务端返回的跳转URL
@@ -622,19 +640,21 @@
                             }
                             window.location.href = contextPath + '/' + rolePage;
                         }
-                    }, 2000);
+                    }, TIMING_CONFIG.REDIRECT_DELAY);
                 } else {
-                    showMessage(data.message || '验证失败', false, 3000);
-                    hideLoading();
+                    showMessage(data.message || '验证失败', false, TIMING_CONFIG.ERROR_MESSAGE);
+                    console.log('验证失败，显示错误消息:', data.message);
+
                     // 验证失败时重新加载验证码
                     setTimeout(() => {
+                        console.log('重新加载验证码');
                         loadSlideCaptcha();
-                    }, 30000);
+                    }, TIMING_CONFIG.REFRESH_CAPTCHA_DELAY);
                 }
             })
             .catch(error => {
                 console.error('滑动验证错误:', error);
-                showMessage('验证失败: ' + error.message, false, 3000);
+                showMessage('验证失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
                 hideLoading();
             });
     }
@@ -642,26 +662,32 @@
     // 刷新验证码
     function refreshCaptcha() {
         loadSlideCaptcha();
-        showMessage('验证码已刷新', true, 1000);
+        showMessage('验证码已刷新', true, TIMING_CONFIG.REFRESH_SUCCESS);
     }
 
     // 返回上一步
     function goBack() {
-        window.location.href = contextPath + '/index.jsp';
+        window.history.back();
     }
 
-    // 显示消息
-    function showMessage(message, isSuccess, duration = 3000) {
+    function showMessage(message, isSuccess, duration = 2000) {
         const messageDiv = document.getElementById('message');
+        console.log('显示消息:', message, '持续时间:', duration, 'ms');
+
+        // 先清除可能存在的定时器
+        if (messageDiv.clearTimeoutId) {
+            clearTimeout(messageDiv.clearTimeoutId);
+        }
+
         messageDiv.textContent = message;
         messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+        messageDiv.style.display = 'block'; // 确保显示
 
         if (duration > 0) {
-            setTimeout(() => {
-                if (messageDiv.textContent === message) {
-                    messageDiv.textContent = '';
-                    messageDiv.className = 'message';
-                }
+            messageDiv.clearTimeoutId = setTimeout(() => {
+                console.log('清除消息:', message);
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
             }, duration);
         }
     }
