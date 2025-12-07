@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>双重验证登录系统</title>
     <style>
         :root {
@@ -65,7 +66,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
             opacity: 0.1;
         }
@@ -296,12 +297,6 @@
             border: 1px solid rgba(72, 187, 120, 0.2);
         }
 
-        .message.error {
-            background-color: rgba(245, 101, 101, 0.1);
-            color: var(--error-color);
-            border: 1px solid rgba(245, 101, 101, 0.2);
-        }
-
         .register-link {
             text-align: center;
             margin-top: 25px;
@@ -367,13 +362,25 @@
 
         /* 动画 */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 响应式设计 */
@@ -407,6 +414,62 @@
             .captcha-image {
                 width: 100%;
                 height: 45px;
+            }
+        }
+
+        .captcha-image.error {
+            border-color: var(--error-color);
+            background: rgba(245, 101, 101, 0.1);
+        }
+
+        .captcha-image.loading {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            position: relative;
+        }
+
+        .captcha-image.loading::after {
+            content: "加载中...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--light-text);
+            font-size: 14px;
+
+            /* 添加更醒目的错误样式 */
+            .message.error {
+                background: linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(229, 62, 62, 0.2) 100%);
+                color: var(--error-color);
+                border: 2px solid var(--error-color);
+                font-weight: 600;
+                animation: shake 0.5s ease-in-out;
+                box-shadow: 0 5px 15px rgba(245, 101, 101, 0.2);
+            }
+
+            /* 输入框错误状态 */
+            .form-input.error {
+                border-color: var(--error-color);
+                background: rgba(245, 101, 101, 0.05);
+                box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+            }
+
+            /* 震动动画 */
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+
+            /* 高亮错误字段 */
+            .highlight-error {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(245, 101, 101, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); }
             }
         }
     </style>
@@ -516,72 +579,67 @@
 
 <script>
     const contextPath = '<%= request.getContextPath() %>';
+    // UTF-8 安全的 Base64 编码函数
+    function utf8_to_b64(str) {
+        return window.btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function b64_to_utf8(str) {
+        return decodeURIComponent(escape(window.atob(str)));
+    }
     let currentSelectedRole = 0; // 0: 普通用户, 1: 管理员
 
     // 页面加载时初始化
-    window.onload = function() {
+    window.onload = function () {
         console.log('页面加载完成');
-
+        // 检测 FontAwesome 是否加载
+        if (typeof window.FontAwesome === 'undefined') {
+            console.warn('FontAwesome 未加载，使用备用图标');
+            // 设置标志，显示时将使用备用字符
+        }
         // 绑定角色卡片点击事件
         document.querySelectorAll('.role-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
+                console.log('选择角色卡片:', this.getAttribute('data-role'));
                 selectRole(this);
             });
         });
 
         // 绑定返回按钮事件
-        document.getElementById('backButton').addEventListener('click', resetToRoleSelection);
+        document.getElementById('backButton').addEventListener('click', function() {
+            console.log('点击返回按钮');
+            resetToRoleSelection();
+        });
 
         // 绑定表单输入事件，按下Enter键提交
-        document.getElementById('loginFormElement').addEventListener('keydown', function(e) {
+        document.getElementById('loginFormElement').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
+                console.log('按下Enter键');
                 e.preventDefault();
                 validateFirstStep();
             }
         });
 
-        // 添加快捷键支持
-        document.addEventListener('keydown', function(event) {
+        // 直接绑定验证按钮点击事件
+        const validateBtn = document.querySelector('.btn-primary');
+        if (validateBtn) {
+            validateBtn.addEventListener('click', function(e) {
+                console.log('验证按钮被点击');
+                e.preventDefault();
+                validateFirstStep();
+            });
+        } else {
+            console.error('未找到验证按钮');
+        }
+
+        // 添加快捷键支持（可选）
+        document.addEventListener('keydown', function (event) {
             // F5刷新验证码
             if (event.key === 'F5') {
                 event.preventDefault();
                 refreshCaptcha();
             }
-            // Ctrl+Enter提交表单
-            if (event.ctrlKey && event.key === 'Enter') {
-                event.preventDefault();
-                if (document.getElementById('loginForm').style.display !== 'none') {
-                    validateFirstStep();
-                }
-            }
-            // Esc键重置表单
-            if (event.key === 'Escape') {
-                if (document.getElementById('loginForm').style.display !== 'none') {
-                    document.getElementById('loginFormElement').reset();
-                    document.getElementById('captcha').focus();
-                }
-            }
         });
-
-        // 页面加载时检查是否已登录
-        fetch(contextPath + '/user/checkLogin?action=checkLogin')
-            .then(response => response.json())
-            .then(data => {
-                if (data.isLoggedIn) {
-                    // 如果已登录，直接跳转到对应的角色页面
-                    if (data.rolePage) {
-                        let rolePage = data.rolePage;
-                        if (!rolePage.startsWith(contextPath)) {
-                            rolePage = contextPath + '/' + rolePage;
-                        }
-                        console.log('跳转到:', rolePage);
-                        // window.location.href = rolePage;  // 这里自动跳转
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('检查登录状态失败:', error);
-            });
     };
 
     // 选择角色
@@ -614,11 +672,22 @@
             document.getElementById('loginForm').style.display = 'flex';
             document.getElementById('backButton').style.display = 'flex';
 
+            // 显示加载中的验证码
+            document.getElementById('captchaImg').src = 'data:image/svg+xml;charset=utf-8;base64,' +
+                window.btoa(unescape(encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="130" height="50" viewBox="0 0 130 50">' +
+                    '<rect width="130" height="50" fill="#f0f0f0"/>' +
+                    '<text x="65" y="30" font-family="Arial" font-size="16" text-anchor="middle" fill="#999">Loading...</text>' +
+                    '</svg>'
+                )));
+
             // 获取验证码
-            refreshCaptcha();
+            refreshCaptchaSilent();
 
             // 自动聚焦到用户名输入框
-            document.getElementById('username').focus();
+            setTimeout(() => {
+                document.getElementById('username').focus();
+            }, 100);
         }, 300);
     }
 
@@ -638,7 +707,8 @@
 
     // 刷新验证码
     function refreshCaptchaSilent() {
-        console.log('刷新验证码');
+        console.log('刷新验证码，请求路径:', contextPath + '/user/Captcha_Num');
+
         fetch(contextPath + '/user/Captcha_Num', {
             method: 'POST',
             headers: {
@@ -648,6 +718,7 @@
         })
             .then(response => {
                 console.log('验证码响应状态:', response.status);
+                console.log('响应头:', response.headers.get('Content-Type'));
                 if (!response.ok) {
                     throw new Error('网络响应不正常: ' + response.status);
                 }
@@ -656,25 +727,60 @@
             .then(data => {
                 console.log('验证码响应数据:', data);
                 if (data.success && data.imageBase64) {
-                    document.getElementById('captchaImg').src = data.imageBase64;
-                    document.getElementById('captcha').value = '';
-                    // 可以显示验证码的文字提示，方便调试
+                    const captchaImg = document.getElementById('captchaImg');
+                    const captchaInput = document.getElementById('captcha');
+
+                    // 设置验证码图片
+                    captchaImg.src = data.imageBase64;
+                    captchaInput.value = '';
+
+                    // 设置图片加载完成后的回调
+                    captchaImg.onload = function () {
+                        console.log('验证码图片加载成功');
+                        // 可以在这里隐藏加载指示器
+                    };
+
+                    captchaImg.onerror = function () {
+                        console.error('验证码图片加载失败');
+                        showMessage('验证码图片加载失败，请刷新重试', false);
+                    };
+
+                    // 调试信息
+                    console.log('验证码Base64长度:', data.imageBase64.length);
                     if (data.displayText) {
                         console.log('验证码文字提示:', data.displayText);
                     }
+                    if (data.captchaCode) {
+                        console.log('验证码实际代码:', data.captchaCode);
+                    }
                 } else {
+                    console.error('验证码生成失败:', data.error);
                     showMessage('验证码生成失败: ' + (data.error || '未知错误'), false);
                 }
             })
             .catch(error => {
                 console.error('验证码请求错误:', error);
                 showMessage('验证码加载失败: ' + error.message, false);
+
+                // 如果是网络错误，显示备用占位符
+                document.getElementById('captchaImg').src = 'data:image/svg+xml;base64,' +
+                    btoa('<svg xmlns="http://www.w3.org/2000/svg" width="130" height="50" viewBox="0 0 130 50">' +
+                        '<rect width="130" height="50" fill="#f0f0f0"/>' +
+                        '<text x="65" y="30" font-family="Arial" font-size="16" text-anchor="middle" fill="#999">点击刷新</text>' +
+                        '</svg>');
             });
     }
 
     function refreshCaptcha() {
+        const captchaImg = document.getElementById('captchaImg');
+        captchaImg.classList.add('loading');
+
         refreshCaptchaSilent();
-        showMessage('验证码已刷新', true, 1000);
+
+        // 移除loading状态
+        setTimeout(() => {
+            captchaImg.classList.remove('loading');
+        }, 1000);
     }
 
     // 跳转到注册页面
@@ -688,6 +794,10 @@
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
         const captcha = document.getElementById('captcha').value.trim();
+
+        console.log('验证表单输入:', {username, password, captcha});
+
+        removeErrorHighlights();
 
         let isValid = true;
         let errorMessage = '';
@@ -704,29 +814,31 @@
             errorMessage = '请输入验证码';
             document.getElementById('captcha').focus();
             isValid = false;
-        } else if (password.length < 6) {
-            errorMessage = '密码长度至少6位';
-            document.getElementById('password').focus();
-            isValid = false;
         }
 
         if (!isValid) {
+            console.log('表单验证失败:', errorMessage);
             showMessage(errorMessage, false);
+        } else {
+            console.log('表单验证成功');
         }
 
         return isValid;
     }
 
     // 第一步验证
-    <!-- 在原有的script中修改validateFirstStep函数的跳转部分 -->
-        // 第一步验证
-        function validateFirstStep() {
-        console.log('开始第一步验证');
+    function validateFirstStep() {
+        console.log('=== 开始第一步验证 ===');
+
+        // 先移除所有错误高亮
+        removeErrorHighlights();
 
         // 先进行表单验证
         if (!validateFormInputs()) {
-        return;
-    }
+            console.log('表单验证失败');
+            return;
+        }
+        console.log('表单验证通过');
 
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
@@ -746,95 +858,200 @@
         submitBtn.disabled = true;
 
         fetch(contextPath + '/user/Captcha_Num_pd', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    },
-        body: params
-    })
-        .then(response => {
-        console.log('第一步验证响应状态:', response.status);
-        if (!response.ok) {
-        throw new Error('网络响应不正常: ' + response.status);
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params
+        })
+            .then(response => {
+                console.log('第一步验证响应状态:', response.status);
+                if (!response.ok) {
+                    throw new Error('网络响应不正常: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('第一步验证响应数据:', data);
+                // 恢复按钮状态
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+
+                if (data.success) {
+                    showMessage(data.message, true);
+                    console.log('第一步验证成功，跳转到第二层验证页面');
+                    setTimeout(() => {
+                        // 确保URL正确拼接
+                        let redirectUrl = data.redirectUrl;
+                        console.log('最终跳转URL:', redirectUrl);
+                        // 跳转到第二层验证页面
+                        window.location.href = redirectUrl;
+                    }, 1500);
+
+                } else {
+                    let errorMessage = data.message || '登录失败';
+                    console.log('服务器返回的错误消息:', data.message);
+
+                    // 显示服务器返回的错误消息
+                    showMessage(errorMessage, false);
+
+                    // 如果错误信息包含账号密码相关，高亮用户名和密码输入框
+                    if (errorMessage.includes('账号') || errorMessage.includes('密码') ||
+                        errorMessage.includes('用户名') || errorMessage.includes('用户')) {
+                        const usernameInput = document.getElementById('username');
+                        const passwordInput = document.getElementById('password');
+
+                        if (usernameInput) usernameInput.classList.add('error', 'highlight-error');
+                        if (passwordInput) passwordInput.classList.add('error');
+
+                        // 清空密码和验证码，保留用户名
+                        document.getElementById('password').value = '';
+                        document.getElementById('captcha').value = '';
+                        document.getElementById('username').focus();
+                    }
+
+                    // 延迟静默刷新验证码
+                    setTimeout(() => {
+                        refreshCaptchaSilent();
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                console.error('第一步验证错误:', error);
+
+                // 恢复按钮状态
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                showMessage('网络请求失败: ' + error.message, false);
+                setTimeout(() => {
+                    refreshCaptchaSilent();
+                }, 1000);
+            });
     }
-        return response.json();
-    })
-        .then(data => {
-        console.log('第一步验证响应数据:', data);
 
-        // 恢复按钮状态
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-
-        if (data.success) {
-        showMessage(data.message, true);
-        console.log('第一步验证成功，跳转到第二层验证页面');
-
-        // 根据返回的验证码类型，跳转到对应的JSP页面
-        setTimeout(() => {
-        // 确保URL正确拼接
-        let redirectUrl = data.redirectUrl;
-        // 直接使用服务器返回的完整路径
-        console.log('最终跳转URL:', redirectUrl);
-
-        // 跳转到第二层验证页面
-        window.location.href = redirectUrl;
-    }, 1500);
-
-    } else {
-        let errorMessage = data.message;
-        console.log('服务器返回的错误消息:', data.message);
-
-        // 更友好的错误提示
-        if (data.message.includes('账号密码') || data.message.includes('密码错误')) {
-        errorMessage = "账号或密码错误，请检查后重新输入";
-    } else if (data.message.includes('验证码')) {
-        errorMessage = "验证码错误，请重新输入";
-    } else if (data.message.includes('过期')) {
-        errorMessage = "验证码已过期，请刷新验证码";
-    }
-
-        console.log('最终显示的错误消息:', errorMessage);
-        showMessage(errorMessage, false);
-
-        // 延迟静默刷新验证码
-        setTimeout(() => {
-        refreshCaptchaSilent();
-    }, 1000);
-    }
-    })
-        .catch(error => {
-        console.error('第一步验证错误:', error);
-
-        // 恢复按钮状态
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-
-        showMessage('验证失败: ' + error.message, false);
-
-        setTimeout(() => {
-        refreshCaptchaSilent();
-    }, 1000);
-    });
-    }
-
-    // 显示消息
+       // 显示消息
     function showMessage(message, isSuccess, duration = 3000) {
         const messageContainer = document.getElementById('messageContainer');
+        if (!messageContainer) {
+            console.error('找不到消息容器');
+            return;
+        }
+
+        // 清空并显示容器
+        messageContainer.innerHTML = '';
         messageContainer.style.display = 'block';
 
-        messageContainer.innerHTML = `
-            <div class="message ${isSuccess ? 'success' : 'error'}">
-                <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                ${message}
-            </div>
+        // 创建消息元素
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+
+        // 如果 FontAwesome 加载失败，使用纯文本符号
+        const icon = isSuccess ?
+            (window.FontAwesome ? '<i class="fas fa-check-circle"></i> ' : '✓ ') :
+            (window.FontAwesome ? '<i class="fas fa-exclamation-circle"></i> ' : '⚠ ');
+
+        messageDiv.innerHTML = icon + message;
+
+        // 设置基本样式（以防CSS加载失败）
+        if (isSuccess) {
+            messageDiv.style.cssText = 'background-color: rgba(72, 187, 120, 0.1); ' +
+                'color: #48bb78; ' +
+                'padding: 15px 20px; ' +
+                'border-radius: 12px; ' +
+                'text-align: center; ' +
+                'font-size: 15px; ' +
+                'font-weight: 500; ' +
+                'margin-bottom: 20px;';
+        } else {
+            messageDiv.style.cssText = 'background-color: rgba(245, 101, 101, 0.1); ' +
+                'color: #f56565; ' +
+                'padding: 15px 20px; ' +
+                'border-radius: 12px; ' +
+                'text-align: center; ' +
+                'font-size: 15px; ' +
+                'font-weight: 500; ' +
+                'margin-bottom: 20px;' +
+                'animation: shake 0.5s ease-in-out;';
+
+            // 添加抖动动画的内联定义
+            const style = document.createElement('style');
+            style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
         `;
+            document.head.appendChild(style);
+        }
+
+        messageContainer.appendChild(messageDiv);
+
+        // 滚动到消息位置
+        setTimeout(() => {
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+
+        // 如果不是成功消息，高亮相关输入框
+        if (!isSuccess) {
+            highlightErrorFields(message);
+        }
 
         if (duration > 0) {
             setTimeout(() => {
                 hideMessage();
+                removeErrorHighlights();
             }, duration);
         }
+    }
+
+    // 高亮错误字段
+    function highlightErrorFields(errorMessage) {
+        // 移除之前的高亮
+        removeErrorHighlights();
+
+        // 根据错误信息判断高亮哪个字段
+        if (errorMessage.includes('账号') || errorMessage.includes('用户名') ||
+            errorMessage.includes('用户') || errorMessage.includes('账号密码')) {
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.classList.add('error', 'highlight-error');
+                usernameInput.focus();
+            }
+
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.classList.add('error');
+            }
+        } else if (errorMessage.includes('验证码') || errorMessage.includes('验证')) {
+            const captchaInput = document.getElementById('captcha');
+            if (captchaInput) {
+                captchaInput.classList.add('error', 'highlight-error');
+                captchaInput.focus();
+            }
+
+            const captchaImg = document.getElementById('captchaImg');
+            if (captchaImg) {
+                captchaImg.classList.add('error');
+            }
+        } else if (errorMessage.includes('密码')) {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.classList.add('error', 'highlight-error');
+                passwordInput.focus();
+            }
+        }
+    }
+
+    // 移除错误高亮
+    function removeErrorHighlights() {
+        document.querySelectorAll('.form-input.error').forEach(input => {
+            input.classList.remove('error', 'highlight-error');
+        });
+
+        document.querySelectorAll('.captcha-image.error').forEach(img => {
+            img.classList.remove('error');
+        });
     }
 
     // 隐藏消息

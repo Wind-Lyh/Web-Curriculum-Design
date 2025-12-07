@@ -1,11 +1,12 @@
 <%@ page import="com.community.model.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="com.community.model.User" %>
 <%
-    // 从session获取用户对象
-    User currentUser = (User) session.getAttribute("currentUser");
-    if (currentUser == null) {
+    // 从session获取用户对象 - 使用正确的属性名
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
         // 如果没有用户信息，跳回登录页
-        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/views/index.jsp");
         return;
     }
 %>
@@ -281,10 +282,10 @@
             <div class="control-group">
                 <div class="section-title">旋转控制</div>
                 <div class="rotation-controls">
-                    <button onclick="RotateImage(-30)">左转30°</button>
-                    <button onclick="RotateImage(-5)">左转5°</button>
-                    <button onclick="RotateImage(5)">右转5°</button>
-                    <button onclick="RotateImage(30)">右转30°</button>
+                    <button onclick="rotateImage(-30)">左转30°</button>
+                    <button onclick="rotateImage(-5)">左转5°</button>
+                    <button onclick="rotateImage(5)">右转5°</button>
+                    <button onclick="rotateImage(30)">右转30°</button>
                     <button onclick="resetRotation()">重置角度</button>
                 </div>
             </div>
@@ -299,78 +300,134 @@
 </div>
 
 <script>
-    // 将用户信息传递给JavaScript
-    var currentUser = {
-        id: <%= currentUser.getId() %>,
-        username: '<%= currentUser.getUsername() %>'
-    };
-
-    console.log('当前用户:', currentUser);
-
-    // 全局变量 - 旋转验证
+    // 全局变量
+    const contextPath = '<%= request.getContextPath() %>';
     let currentRotation = 0;
     let targetRotation = 0;
     let isDragging = false;
     let startAngle = 0;
     let startRotation = 0;
+    let correctAngle = 0; // 后端返回的正确角度
+
+    // 时间配置常量
+    const TIMING_CONFIG = {
+        SUCCESS_MESSAGE: 1200,     // 成功消息显示1.2秒
+        ERROR_MESSAGE: 2500,       // 错误消息显示2.5秒
+        REDIRECT_DELAY: 1200,      // 跳转延迟1.2秒
+        REFRESH_CAPTCHA_DELAY: 2500, // 刷新验证码延迟2.5秒（与错误消息同步结束）
+        REFRESH_SUCCESS: 800,      // 刷新成功消息0.8秒
+        LOADING_ANIMATION: 300     // 加载动画0.3秒
+    };
 
     // 页面加载时初始化
     window.onload = function () {
         console.log('旋转验证页面加载完成');
+        console.log('Context Path:', contextPath);
+        console.log('当前用户:', '<%= user.getUsername() %>');
+
+        // 确保消息区域可见
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.style.display = 'block';
+        }
+
         loadRotateCaptcha();
         setupDragRotation();
     };
 
-    // 加载旋转验证码
+    // 修改loadRotateCaptcha函数
     function loadRotateCaptcha() {
-        console.log('加载旋转验证码');
+        console.log('开始加载旋转验证码...');
 
-        const params = new URLSearchParams();
-        params.append('action', 'generate');
+        // 显示加载状态
+        showLoading('正在加载验证码...');
 
-        fetch('<%= request.getContextPath() %>/imageCaptcha', {
-            method: 'POST',
+        // 使用正确的URL - 确保有斜杠
+        const url = contextPath + '/user/rotateCaptcha?action=rotateCaptcha';
+        console.log('完整请求URL:', url);
+        console.log('完整请求地址:', window.location.protocol + '//' + window.location.host + url);
+
+        fetch(url, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params
+                'Accept': 'application/json'
+            }
         })
             .then(response => {
-                console.log('旋转验证码响应状态:', response.status);
+                console.log('响应状态:', response.status, response.statusText);
                 if (!response.ok) {
-                    throw new Error('网络响应不正常: ' + response.status);
+                    throw new Error(`HTTP错误 ${response.status}: ${response.statusText}`);
                 }
-                return response.json();
+                return response.text();
             })
-            .then(data => {
-                console.log('旋转验证码响应数据:', data);
-                if (data.success) {
-                    handleRotateCaptchaResponse(data);
-                } else {
-                    showMessage('验证码加载失败: ' + (data.error || '未知错误'), false);
+            .then(text => {
+                console.log('原始响应文本:', text.substring(0, Math.min(500, text.length)) + '...');
+
+                try {
+                    const data = JSON.parse(text);
+                    console.log('解析后的JSON:', data);
+
+                    if (data.success) {
+                        handleRotateCaptchaResponse(data);
+                    } else {
+                        throw new Error(data.message || data.error || '验证码加载失败');
+                    }
+                } catch (e) {
+                    console.error('JSON解析失败:', e);
+                    console.error('原始文本:', text);
+                    throw new Error('服务器返回的数据格式错误');
                 }
             })
             .catch(error => {
-                console.error('旋转验证码请求错误:', error);
-                showMessage('验证码加载失败: ' + error.message, false);
+                console.error('加载验证码失败:', error);
+                showMessage('验证码加载失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
+                hideLoading();
             });
     }
 
-    // 处理旋转验证码响应
+    // 修改handleRotateCaptchaResponse函数
     function handleRotateCaptchaResponse(data) {
+        console.log('处理旋转验证码响应:', data);
+
         // 设置目标角度
-        targetRotation = data.targetValue;
+        targetRotation = data.correctAngle || 0;
+        correctAngle = data.correctAngle || 0;
+
+        console.log('目标角度:', targetRotation, '正确角度:', correctAngle);
+
+        // 更新页面显示
         document.getElementById('targetAngle').textContent = targetRotation;
 
         // 设置图片
         const rotateImage = document.getElementById('rotateImage');
-        rotateImage.src = data.imageBase64;
+        if (data.rotatedImage && data.rotatedImage.startsWith('data:image')) {
+            rotateImage.src = data.rotatedImage;
+            console.log('使用rotatedImage，长度:', data.rotatedImage.length);
+        } else if (data.base64Image && data.base64Image.startsWith('data:image')) {
+            rotateImage.src = data.base64Image;
+            console.log('使用base64Image，长度:', data.base64Image.length);
+        } else {
+            console.error('没有有效的图片数据');
+            showMessage('验证码图片数据异常', false, TIMING_CONFIG.ERROR_MESSAGE);
+            hideLoading();
+            return;
+        }
 
-        // 重置当前角度
-        currentRotation = data.initialAngle || 0;
-        updateRotation();
+        // 等待图片加载
+        rotateImage.onload = function() {
+            console.log('图片加载成功，尺寸:', this.width + 'x' + this.height);
+            // 重置当前角度
+            currentRotation = data.initialAngle || 0;
+            updateRotation();
+            hideLoading();
+            console.log('旋转验证码初始化完成');
+        };
 
-        console.log('旋转验证码初始化完成，目标角度: ' + targetRotation);
+        rotateImage.onerror = function() {
+            console.error('图片加载失败');
+            showMessage('验证码图片加载失败', false, TIMING_CONFIG.ERROR_MESSAGE);
+            hideLoading();
+        };
     }
 
     // 设置拖拽旋转功能
@@ -444,7 +501,7 @@
     }
 
     // 旋转图片
-    function RotateImage(degrees) {
+    function rotateImage(degrees) {
         currentRotation += degrees;
         currentRotation = (currentRotation % 360 + 360) % 360;
         updateRotation();
@@ -478,13 +535,13 @@
     function updateRotation() {
         const image = document.getElementById('rotateImage');
         const angleDisplay = document.getElementById('currentAngle');
-        console.log(currentRotation);
+
         // 更新图片旋转
-        var value=Math.round(currentRotation);
-        image.style.transform = "rotate("+value+"deg)";
-        //image.style.willChange = 'transform';
+        const roundedRotation = Math.round(currentRotation);
+        image.style.transform = "rotate(" + roundedRotation + "deg)";
+
         // 更新角度显示
-        angleDisplay.textContent = Math.round(currentRotation);
+        angleDisplay.textContent = roundedRotation;
 
         // 添加轻微动画效果
         image.style.transition = isDragging ? 'none' : 'transform 0.1s ease';
@@ -492,13 +549,15 @@
 
     // 验证旋转
     function validateRotation() {
-        console.log('开始旋转验证，用户角度: ' + currentRotation + ', 目标角度: ' + targetRotation);
+        console.log('开始旋转验证，用户角度: ' + currentRotation + ', 正确角度: ' + correctAngle);
+
+        showLoading('正在验证...');
 
         const params = new URLSearchParams();
-        params.append('action', 'validate');
+        params.append('action', 'validateRotateCaptcha');
         params.append('angle', Math.round(currentRotation));
 
-        fetch('<%= request.getContextPath() %>/imageCaptcha', {
+        fetch(contextPath + '/user/validateRotateCaptcha', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -515,54 +574,88 @@
             .then(data => {
                 console.log('旋转验证响应数据:', data);
                 if (data.success) {
-                    showMessage(data.message, true, 2000);
+                    showMessage(data.message || '验证成功', true, TIMING_CONFIG.SUCCESS_MESSAGE);
                     console.log('旋转验证成功，跳转到主页面');
 
                     // 使用服务端返回的跳转URL
                     setTimeout(() => {
+                        hideLoading();
                         if (data.redirectUrl) {
                             window.location.href = data.redirectUrl;
                         } else {
-                            // 备用跳转路径 - 修正为正确的路径
-                            window.location.href = '<%= request.getContextPath() %>/jsp/messages.jsp';
+                            // 获取角色页面
+                            const currentRole = <%= session.getAttribute("currentRole") != null ? session.getAttribute("currentRole") : 0 %>;
+                            let rolePage = '';
+                            switch(currentRole) {
+                                case 1: rolePage = 'admin/dashboard.jsp'; break;
+                                case 2: rolePage = 'moderator/panel.jsp'; break;
+                                default: rolePage = 'user/home.jsp';
+                            }
+                            window.location.href = contextPath + '/' + rolePage;
                         }
-                    }, 2000);
+                    }, TIMING_CONFIG.REDIRECT_DELAY);
                 } else {
-                    showMessage(data.message, false, 3000);
+                    showMessage(data.message || '验证失败', false, TIMING_CONFIG.ERROR_MESSAGE);
+                    console.log('旋转验证失败，重新验证');
+
                     // 验证失败时重新加载验证码
                     setTimeout(() => {
+                        console.log('重新加载验证码');
                         loadRotateCaptcha();
-                    }, 1000);
+                    }, TIMING_CONFIG.REFRESH_CAPTCHA_DELAY);
                 }
             })
             .catch(error => {
                 console.error('旋转验证错误:', error);
-                showMessage('验证失败: ' + error.message, false, 3000);
+                showMessage('验证失败: ' + error.message, false, TIMING_CONFIG.ERROR_MESSAGE);
+                hideLoading();
             });
     }
 
     // 刷新验证码
     function refreshCaptcha() {
         loadRotateCaptcha();
-        showMessage('验证码已刷新', true, 1000);
+        showMessage('验证码已刷新', true, TIMING_CONFIG.REFRESH_SUCCESS);
     }
 
     // 返回上一步
     function goBack() {
-        window.location.href = '<%= request.getContextPath() %>/login.jsp';
+        window.history.back();
     }
 
     // 显示消息
-    function showMessage(message, isSuccess, duration = 3000) {
+    function showMessage(message, isSuccess, duration = 2000) {
         const messageDiv = document.getElementById('message');
+        console.log('显示消息:', message, '持续时间:', duration, 'ms');
+
+        // 先清除可能存在的定时器
+        if (messageDiv.clearTimeoutId) {
+            clearTimeout(messageDiv.clearTimeoutId);
+        }
+
         messageDiv.textContent = message;
         messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
-        setTimeout(() => {
-            if (messageDiv.textContent === message) {
+        messageDiv.style.display = 'block'; // 确保显示
+
+        if (duration > 0) {
+            messageDiv.clearTimeoutId = setTimeout(() => {
+                console.log('清除消息:', message);
                 messageDiv.textContent = '';
                 messageDiv.className = 'message';
-            }
-        }, duration);
+            }, duration);
+        }
+    }
+
+    // 显示加载中
+    function showLoading(message) {
+        showMessage(message || '处理中...', true, 0);
+    }
+
+    // 隐藏加载中
+    function hideLoading() {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = '';
+        messageDiv.className = 'message';
     }
 </script>
 </body>
