@@ -4,8 +4,7 @@ import com.community.dao.UserDao;
 import com.community.dao.impl.UserDaoImpl;
 import com.community.model.User;
 import com.community.service.UserService;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -15,11 +14,9 @@ import java.util.List;
  */
 public class UserServiceImpl implements UserService {
 
-    // 这里应该注入DAO层，但为了简化，我们使用伪数据库操作
-    // 实际项目中应该使用数据库
-    private List<User> userDatabase = new ArrayList<>();
     private int currentId = 1;
     private UserDao userDao = new UserDaoImpl();
+    private List<User> userDatabase=userDao.findAll(1,200);
 
     @Override
     public String register(User user) {
@@ -61,25 +58,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User login(String username, String password) {
+        System.out.println("进入login");
         try {
             // 1. 查找用户
             User user = getUserByUsername(username);
             if (user == null) {
+                System.out.println("login用户不存在");
                 return null; // 用户不存在
             }
 
             // 2. 检查用户状态
             if (user.getStatus() == 1) {
+                System.out.println("用户被封禁");
                 return null; // 用户被封禁
             }
 
             // 3. 验证密码
             String encryptedPassword =password;
             if (!user.getPassword().equals(encryptedPassword)) {
+                System.out.println("密码错误");
                 return null; // 密码错误
             }
 
             // 4. 更新最后登录时间
+            System.out.println(12345679);
             user.setLastLoginTime(new Date());
 
             // 5. 返回用户对象（注意：实际项目中应该返回用户副本，避免返回密码）
@@ -100,6 +102,7 @@ public class UserServiceImpl implements UserService {
 
             return result;
         } catch (Exception e) {
+            System.out.println("login错误");
             e.printStackTrace();
             return null;
         }
@@ -393,23 +396,6 @@ public class UserServiceImpl implements UserService {
             }
 
             user.setStatus(0); // 设置为正常状态
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public boolean resetPassword(int userId, String newPassword) {
-        try {
-            User user = getUserById(userId);
-            if (user == null) {
-                return false;
-            }
-
-            String encryptedPassword = newPassword;
-            user.setPassword(encryptedPassword);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
