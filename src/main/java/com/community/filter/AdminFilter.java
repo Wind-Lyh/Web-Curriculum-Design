@@ -38,27 +38,6 @@ public class AdminFilter implements Filter {
             redirectToLogin(httpRequest, httpResponse);
             return;
         }
-
-//        // 获取用户信息
-//        User user = (User) session.getAttribute("user");
-//
-//        if (user == null) {
-//            // 用户未登录，跳转到登录页面
-//            redirectToLogin(httpRequest, httpResponse);
-//            return;
-//        }
-//
-//        // 检查用户是否为管理员（假设管理员role为1）
-//        Integer role = user.getRole();
-//        if (role == null || role != 1) {
-//            // 不是管理员，跳转到错误页面
-//            System.out.println("非管理员用户尝试访问管理员页面: " + user.getUsername());
-//            httpResponse.sendRedirect(httpRequest.getContextPath() + "/views/error/403.jsp");
-//            return;
-//        }
-//
-//        // 是管理员，继续执行
-//        chain.doFilter(request, response);
     }
 
     /**
