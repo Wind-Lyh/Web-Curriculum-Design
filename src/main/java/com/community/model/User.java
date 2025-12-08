@@ -13,7 +13,6 @@ public class User {
     private String signature;      // 个性签名，对应users.signature
     private Integer points;        // 积分，对应users.points，默认0
     private Integer level;         // 等级，对应users.level，默认1
-    private Integer role;          // 角色：0普通用户，1管理员（数据库无直接对应字段）
     private Integer status;        // 状态：0正常，1封禁，对应users.is_banned字段
     private Date createTime;       // 创建时间，对应users.create_time，默认当前时间
     private Date lastLoginTime;    // 最后登录时间，对应users.last_login_time
@@ -29,7 +28,9 @@ public class User {
 
 
 
-    public User(Integer id, String username, String password, String email, String phone, String avatarUrl, String nickname, String signature, Integer points, Integer level, Integer role, Integer status, Date createTime, Date lastLoginTime, Integer is_admin) {
+    public User(Integer id, String username, String password, String email, String phone,
+                String avatarUrl, String nickname, String signature, Integer points,
+                Integer level, Integer status, Date createTime, Date lastLoginTime, Integer is_admin) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -40,7 +41,6 @@ public class User {
         this.signature = signature;
         this.points = points;
         this.level = level;
-        this.role = role;
         this.status = status;
         this.createTime = createTime;
         this.lastLoginTime = lastLoginTime;
@@ -52,18 +52,10 @@ public class User {
     public User() {
         this.points = 0;
         this.level = 1;
-        this.role = 0;
         this.status = 0;
         this.createTime = new Date();
         this.avatarUrl = "/static/images/初始化头像.jpg";
-    }
-
-    public User(String username, String password, String email, String nickname) {
-        this();
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.nickname = nickname;
+        this.is_admin = 0;
     }
 
     // Getter和Setter方法
@@ -147,14 +139,6 @@ public class User {
         this.level = level;
     }
 
-    public Integer getRole() {
-        return role;
-    }
-
-    public void setRole(Integer role) {
-        this.role = role;
-    }
-
     public Integer getStatus() {
         return status;
     }
@@ -179,6 +163,10 @@ public class User {
         this.lastLoginTime = lastLoginTime;
     }
 
+    public Integer getIsAdmin() {return is_admin;}
+
+    public void setIsAdmin(Integer is_admin) {this.is_admin = is_admin;}
+
     @Override
     public String toString() {
         return "User{" +
@@ -188,7 +176,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", points=" + points +
                 ", level=" + level +
-                ", role=" + role +
+                ", is_admin=" + is_admin +
                 ", status=" + status +
                 '}';
     }

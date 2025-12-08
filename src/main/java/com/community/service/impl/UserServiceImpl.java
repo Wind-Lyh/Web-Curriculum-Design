@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
             user.setAvatarUrl("/static/images/初始化头像.jpg");
             user.setPoints(0);
             user.setLevel(1);
-            user.setRole(0); // 普通用户
+            user.setIs_admin(0); // 普通用户
             user.setStatus(0); // 正常状态
 
             // 5. 保存用户（实际项目中应该保存到数据库）
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
             result.setSignature(user.getSignature());
             result.setPoints(user.getPoints());
             result.setLevel(user.getLevel());
-            result.setRole(user.getRole());
+            result.setIs_admin(user.getIs_admin());
             result.setStatus(user.getStatus());
             result.setCreateTime(user.getCreateTime());
             result.setLastLoginTime(user.getLastLoginTime());
@@ -247,7 +247,7 @@ public class UserServiceImpl implements UserService {
                 result.setSignature(user.getSignature());
                 result.setPoints(user.getPoints());
                 result.setLevel(user.getLevel());
-                result.setRole(user.getRole());
+                result.setIs_admin(user.getIs_admin());
                 result.setStatus(user.getStatus());
                 result.setCreateTime(user.getCreateTime());
                 result.setLastLoginTime(user.getLastLoginTime());
@@ -282,7 +282,7 @@ public class UserServiceImpl implements UserService {
                 result.setSignature(user.getSignature());
                 result.setPoints(user.getPoints());
                 result.setLevel(user.getLevel());
-                result.setRole(user.getRole());
+                result.setIs_admin(user.getIs_admin());
                 result.setStatus(user.getStatus());
                 result.setCreateTime(user.getCreateTime());
                 result.setLastLoginTime(user.getLastLoginTime());
@@ -357,7 +357,7 @@ public class UserServiceImpl implements UserService {
                 safeUser.setSignature(user.getSignature());
                 safeUser.setPoints(user.getPoints());
                 safeUser.setLevel(user.getLevel());
-                safeUser.setRole(user.getRole());
+                safeUser.setIs_admin(user.getIs_admin());
                 safeUser.setStatus(user.getStatus());
                 safeUser.setCreateTime(user.getCreateTime());
                 safeUser.setLastLoginTime(user.getLastLoginTime());

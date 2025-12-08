@@ -19,8 +19,9 @@ public class UserDaoImpl implements UserDao {
 
         try {
             conn = DBUtil.getConnection();
+            // 修改SQL语句，移除role字段，添加is_admin字段
             String sql = "INSERT INTO users (username, password, email, phone, avatar_url, nickname, signature, " +
-                    "points, level, role, status, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "points, level, is_admin, is_banned, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             pstmt.setString(1, user.getUsername());
@@ -32,8 +33,8 @@ public class UserDaoImpl implements UserDao {
             pstmt.setString(7, user.getSignature());
             pstmt.setInt(8, user.getPoints());
             pstmt.setInt(9, user.getLevel());
-            pstmt.setInt(10, user.getRole());
-            pstmt.setInt(11, user.getStatus());
+            pstmt.setInt(10, user.getIs_admin());  // 使用is_admin字段
+            pstmt.setInt(11, user.getStatus());    // status对应is_banned字段
             pstmt.setTimestamp(12, new Timestamp(user.getCreateTime().getTime()));
 
             int result = pstmt.executeUpdate();
@@ -52,6 +53,46 @@ public class UserDaoImpl implements UserDao {
         } finally {
             DBUtil.close(conn, pstmt, rs);
         }
+    }
+
+    // 添加根据手机号查询的方法（如果之前没有）
+    public User findByPhone(String phone) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "SELECT * FROM users WHERE phone = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, phone);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                // 设置User对象的所有属性
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+                user.setEmail(rs.getString("email"));
+                user.setPhone(rs.getString("phone"));
+                user.setAvatarUrl(rs.getString("avatar_url"));
+                user.setNickname(rs.getString("nickname"));
+                user.setSignature(rs.getString("signature"));
+                user.setPoints(rs.getInt("points"));
+                user.setLevel(rs.getInt("level"));
+                user.setIs_admin(rs.getInt("is_admin"));
+                user.setStatus(rs.getInt("is_banned"));
+                user.setCreateTime(rs.getTimestamp("create_time"));
+                user.setLastLoginTime(rs.getTimestamp("last_login_time"));
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return null;
     }
 
     @Override
@@ -137,7 +178,7 @@ public class UserDaoImpl implements UserDao {
         try {
             conn = DBUtil.getConnection();
             String sql = "UPDATE users SET email = ?, phone = ?, avatar_url = ?, nickname = ?, " +
-                    "signature = ?, points = ?, level = ?, role = ?, status = ?, last_login_time = ? " +
+                    "signature = ?, points = ?, level = ?, is_admin = ?, is_banned = ?, last_login_time = ? " +
                     "WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
 
@@ -148,7 +189,7 @@ public class UserDaoImpl implements UserDao {
             pstmt.setString(5, user.getSignature());
             pstmt.setInt(6, user.getPoints());
             pstmt.setInt(7, user.getLevel());
-            pstmt.setInt(8, user.getRole());
+            pstmt.setInt(8, user.getIs_admin());
             pstmt.setInt(9, user.getStatus());
 
             if (user.getLastLoginTime() != null) {
@@ -175,7 +216,7 @@ public class UserDaoImpl implements UserDao {
 
         try {
             conn = DBUtil.getConnection();
-            String sql = "UPDATE users SET status = ? WHERE id = ?";
+            String sql = "UPDATE users SET is_banned = ? WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, status);
             pstmt.setInt(2, userId);
@@ -337,7 +378,7 @@ public class UserDaoImpl implements UserDao {
 
         try {
             conn = DBUtil.getConnection();
-            String sql = "SELECT COUNT(*) FROM users WHERE status = 0";
+            String sql = "SELECT COUNT(*) FROM users WHERE is_banned = 0";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
@@ -409,7 +450,7 @@ public class UserDaoImpl implements UserDao {
         try {
             conn = DBUtil.getConnection();
             // 逻辑删除，设置状态为删除
-            String sql = "UPDATE users SET status = 2 WHERE id = ?";
+            String sql = "UPDATE users SET is_banned = 2 WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
 
@@ -437,7 +478,7 @@ public class UserDaoImpl implements UserDao {
         user.setSignature(rs.getString("signature"));
         user.setPoints(rs.getInt("points"));
         user.setLevel(rs.getInt("level"));
-        user.setRole(rs.getInt("is_admin"));
+        user.setIs_admin(rs.getInt("is_admin"));
         user.setStatus(rs.getInt("is_banned"));
         user.setCreateTime(rs.getTimestamp("create_time"));
         user.setLastLoginTime(rs.getTimestamp("last_login_time"));

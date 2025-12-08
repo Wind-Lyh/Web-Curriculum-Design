@@ -263,8 +263,8 @@ public class UserServlet extends HttpServlet {
                     int role = Integer.parseInt(selectedRole.trim());
 
                     // 检查用户是否有权限访问该角色界面
-                    if (user.getRole()!=role) {
-                        System.err.println("❌ 权限不足: 用户角色=" + user.getRole() + ", 请求角色=" + role);
+                    if (user.getIs_admin()!=role) {
+                        System.err.println("❌ 权限不足: 用户角色=" + user.getIs_admin() + ", 请求角色=" + role);
                         sendResponse(out, false, "您没有权限以该角色登录");
                         return;
                     }
@@ -300,8 +300,8 @@ public class UserServlet extends HttpServlet {
                     session.setAttribute("rolePage", getRoleHomePage(role));
                 } else {
                     // 如果没有选择角色，使用用户默认角色
-                    session.setAttribute("currentRole", user.getRole());
-                    session.setAttribute("rolePage", getRoleHomePage(user.getRole()));
+                    session.setAttribute("currentRole", user.getIs_admin());
+                    session.setAttribute("rolePage", getRoleHomePage(user.getIs_admin()));
                 }
 
                 // 随机选择第二层验证码类型
@@ -382,12 +382,12 @@ public class UserServlet extends HttpServlet {
             if (user != null) {
                 // 用户已登录
                 Object currentRoleObj = session.getAttribute("currentRole");
-                int currentRole = currentRoleObj != null ? (Integer) currentRoleObj : user.getRole();
+                int currentRole = currentRoleObj != null ? (Integer) currentRoleObj : user.getIs_admin();
 
                 StringBuilder json = new StringBuilder();
                 json.append("{\"success\":true,");
                 json.append("\"isLoggedIn\":true,");
-                json.append("\"userRole\":").append(user.getRole()).append(",");
+                json.append("\"userRole\":").append(user.getIs_admin()).append(",");
                 json.append("\"currentRole\":").append(currentRole).append(",");
                 json.append("\"rolePage\":\"").append(session.getAttribute("rolePage")).append("\",");
                 json.append("\"userInfo\":{");

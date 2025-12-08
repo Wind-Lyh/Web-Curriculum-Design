@@ -40,6 +40,8 @@
                 /index.jsp,
                 /user/login.jsp,
                 /user/register.jsp,
+                /views/user/register.jsp,  <!-- 添加这个 -->
+                /register,                  <!-- 确保有这个 -->
                 /views/users/rotateCaptcha.jsp,
                 /views/users/slideCaptcha.jsp,
                 /captcha,
@@ -186,6 +188,16 @@
         <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
+    <!--注册登录servlet-->
+    <servlet>
+        <servlet-name>RegisterServlet</servlet-name>
+        <servlet-class>com.community.controller.RegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegisterServlet</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+
 
     <!-- ========== 监听器配置 ========== -->
     <listener>

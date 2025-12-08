@@ -408,8 +408,8 @@
         inputElement.classList.remove('error');
         inputElement.classList.remove('success');
 
-        // 发送AJAX请求检查用户名
-        fetch(`${contextPath}/register?action=checkUsername&username=${encodeURIComponent(username)}`)
+        // 发送AJAX请求检查用户名 - 修改为字符串拼接
+        fetch(contextPath + '/register?action=checkUsername&username=' + encodeURIComponent(username))
             .then(response => response.json())
             .then(data => {
                 if (data.exists) {
@@ -460,8 +460,8 @@
         inputElement.classList.remove('error');
         inputElement.classList.remove('success');
 
-        // 发送AJAX请求检查邮箱
-        fetch(`${contextPath}/register?action=checkEmail&email=${encodeURIComponent(email)}`)
+        // 发送AJAX请求检查邮箱 - 修改为字符串拼接
+        fetch(contextPath + '/register?action=checkEmail&email=' + encodeURIComponent(email))
             .then(response => response.json())
             .then(data => {
                 if (data.exists) {
@@ -484,53 +484,6 @@
             });
     }
 
-    // 检查密码一致性
-    function checkPassword() {
-        const password = document.querySelector('input[name="password"]').value;
-        const confirmPassword = document.querySelector('input[name="confirmPassword"]').value;
-        const passwordError = document.getElementById('passwordError');
-        const confirmError = document.getElementById('confirmPasswordError');
-        const passwordInput = document.querySelector('input[name="password"]');
-        const confirmInput = document.querySelector('input[name="confirmPassword"]');
-
-        // 清除之前的错误
-        passwordError.textContent = '';
-        confirmError.textContent = '';
-        passwordInput.classList.remove('error', 'success');
-        confirmInput.classList.remove('error', 'success');
-
-        // 检查密码
-        if (!password.trim()) {
-            passwordError.textContent = '密码不能为空';
-            passwordInput.classList.add('error');
-            return;
-        }
-
-        if (password.length < 6) {
-            passwordError.textContent = '密码至少6个字符';
-            passwordInput.classList.add('error');
-            return;
-        }
-
-        passwordInput.classList.add('success');
-
-        // 检查确认密码
-        if (!confirmPassword.trim()) {
-            confirmError.textContent = '请确认密码';
-            confirmInput.classList.add('error');
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            confirmError.textContent = '两次输入的密码不一致';
-            confirmInput.classList.add('error');
-            return;
-        }
-
-        confirmInput.classList.add('success');
-        confirmError.innerHTML = '<span style="color:#2ed573;">✓ 密码一致</span>';
-    }
-
     // 表单提交验证
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -547,8 +500,8 @@
         // 收集表单数据
         const formData = new FormData(this);
 
-        // 发送注册请求
-        fetch(`${contextPath}/register`, {
+        // 发送注册请求 - 修改为字符串拼接
+        fetch(contextPath + '/register', {
             method: 'POST',
             body: formData
         })
@@ -575,34 +528,6 @@
                 btnText.textContent = '立即注册';
                 loading.style.display = 'none';
             });
-    });
-
-    // 页面加载完成后，为所有必填字段添加基础验证
-    document.addEventListener('DOMContentLoaded', function() {
-        const requiredInputs = document.querySelectorAll('input[required]');
-        requiredInputs.forEach(input => {
-            input.addEventListener('blur', function() {
-                if (!this.value.trim()) {
-                    const errorId = this.name + 'Error';
-                    const errorElement = document.getElementById(errorId);
-                    if (errorElement) {
-                        errorElement.textContent = '此项不能为空';
-                        this.classList.add('error');
-                    }
-                }
-            });
-
-            input.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    const errorId = this.name + 'Error';
-                    const errorElement = document.getElementById(errorId);
-                    if (errorElement && errorElement.textContent === '此项不能为空') {
-                        errorElement.textContent = '';
-                        this.classList.remove('error');
-                    }
-                }
-            });
-        });
     });
 </script>
 <%

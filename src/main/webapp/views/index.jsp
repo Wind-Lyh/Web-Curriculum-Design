@@ -577,6 +577,17 @@
     </div>
 </div>
 
+<%
+    String registerSuccess = request.getParameter("register");
+    if ("success".equals(registerSuccess)) {
+%>
+<div style="background: #2ed573; color: white; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+    注册成功！请使用您的账号登录。
+</div>
+<%
+    }
+%>
+
 <script>
     const contextPath = '<%= request.getContextPath() %>';
     // UTF-8 安全的 Base64 编码函数
@@ -786,7 +797,7 @@
     // 跳转到注册页面
     function goToRegister() {
         console.log('跳转到注册页面');
-        window.location.href = contextPath + '/views/users/register.jsp';
+        window.location.href = contextPath + '/views/user/register.jsp';
     }
 
     // 表单输入验证
