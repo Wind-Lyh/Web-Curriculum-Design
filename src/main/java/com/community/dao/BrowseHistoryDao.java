@@ -5,10 +5,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 浏览历史数据访问接口
- * 功能描述：管理用户浏览帖子历史记录的增删改查操作
- */
 public interface BrowseHistoryDao {
 
     // ==================== 基础操作功能 ====================
