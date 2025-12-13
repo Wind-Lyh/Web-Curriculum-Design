@@ -10,6 +10,7 @@ public class Exchange {
     private Integer totalCost;  // 总花费积分，对应exchanges.total_cost
     private Date createTime;    // 兑换时间，对应exchanges.create_time，默认当前时间
 
+    public Exchange() {}
     public Exchange(Integer id, Integer userId, Integer goodsId, Integer quantity, Integer totalCost, Date createTime) {
         this.id = id;
         this.userId = userId;

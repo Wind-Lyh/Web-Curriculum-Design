@@ -71,7 +71,7 @@ public interface AdminService {
      * @param pageSize 每页大小
      * @return 日志列表
      */
-    List<AdminLog> getAdminLogs(int page, int pageSize);
+    List<AdminLog> getAdminLogs(int adminId, int page, int pageSize);
 
     /**
      * 仪表板统计信息类

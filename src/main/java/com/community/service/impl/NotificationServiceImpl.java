@@ -45,14 +45,14 @@ public class NotificationServiceImpl implements NotificationService {
             throw new SecurityException("无权操作此通知");
         }
 
-        int result = notificationDao.markAsRead(notificationId);
-        return result > 0;
+        boolean result = notificationDao.markAsRead(notificationId);
+        return result;
     }
 
     @Override
     public boolean markAllAsRead(int userId) {
-        int result = notificationDao.markAllAsRead(userId);
-        return result > 0;
+        boolean result = notificationDao.markAllAsRead(userId);
+        return result;
     }
 
     @Override
@@ -70,8 +70,8 @@ public class NotificationServiceImpl implements NotificationService {
             throw new IllegalArgumentException("通知信息不完整");
         }
 
-        int result = notificationDao.insertNotification(notification);
-        return result > 0;
+        boolean result = notificationDao.insertNotification(notification);
+        return result;
     }
 
     /**

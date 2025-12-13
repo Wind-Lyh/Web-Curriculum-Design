@@ -6,6 +6,8 @@ import com.community.model.User;
 import com.community.model.BrowseHistory;
 import com.community.service.UserProfileService;
 import com.community.util.StringUtil;
+
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -54,17 +56,21 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new IllegalArgumentException("参数无效");
         }
 
-        boolean alreadyViewed = browseHistoryDao.checkUserViewedPost(userId, postId);
-        if (alreadyViewed) {
-            return;
+        try {
+            // 检查用户是否已经浏览过该帖子
+            boolean alreadyViewed = browseHistoryDao.checkUserViewedPost(userId, postId);
+            if (alreadyViewed) {
+                return;
+            }
+
+            // 添加浏览记录
+            browseHistoryDao.addBrowseHistory(userId, postId);
+
+        } catch (SQLException e) {
+            // 可以根据需要决定是否区分是哪个操作抛出的异常
+            // 但通常对于调用方来说，知道是数据访问异常即可
+            throw new RuntimeException("addBrowseHistory添加浏览记录失败: " + e.getMessage(), e);
         }
-
-        BrowseHistory history = new BrowseHistory();
-        history.setUserId(userId);
-        history.setPostId(postId);
-        history.setBrowseTime(new Date());
-
-        browseHistoryDao.addBrowseHistory(history);
     }
 
     @Override
@@ -74,7 +80,11 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
 
         int offset = (page - 1) * pageSize;
-        return browseHistoryDao.getUserBrowseHistoryList(userId, offset, pageSize);
+        try {
+            return browseHistoryDao.getUserRecentBrowseHistory(userId, offset);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -88,7 +98,13 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new IllegalArgumentException("用户不存在");
         }
 
-        int result = browseHistoryDao.clearUserBrowseHistory(userId);
+        int result = 0;
+        try {
+            result = browseHistoryDao.clearUserBrowseHistory(userId);
+        } catch (SQLException e) {
+            System.out.println("clearBrowseHistory报错");
+            throw new RuntimeException(e);
+        }
 
         return result > 0;
     }

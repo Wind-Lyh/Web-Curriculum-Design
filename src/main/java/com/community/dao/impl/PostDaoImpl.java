@@ -19,7 +19,7 @@ public class PostDaoImpl implements PostDao {
         try {
             conn = DBUtil.getConnection();
             String sql = "INSERT INTO posts (title, content, user_id, section_id, view_count, " +
-                    "like_count, comment_count, status, create_time, update_time) " +
+                    "like_count, comment_count,is_deleted, create_time, update_time) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -65,7 +65,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE p.id = ? AND p.status != 3";
+                    "WHERE p.id = ? AND p.is_deleted != 3";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
@@ -89,7 +89,7 @@ public class PostDaoImpl implements PostDao {
         try {
             conn = DBUtil.getConnection();
             String sql = "UPDATE posts SET title = ?, content = ?, section_id = ?, " +
-                    "view_count = ?, like_count = ?, comment_count = ?, status = ?, " +
+                    "view_count = ?, like_count = ?, comment_count = ?, is_deleted = ?, " +
                     "update_time = ? WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
 
@@ -120,7 +120,7 @@ public class PostDaoImpl implements PostDao {
         try {
             conn = DBUtil.getConnection();
             // 逻辑删除，设置状态为3
-            String sql = "UPDATE posts SET status = 3 WHERE id = ?";
+            String sql = "UPDATE posts SET is_deleted = 3 WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
 
@@ -146,7 +146,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE p.section_id = ? AND p.status != 3 " +
+                    "WHERE p.section_id = ? AND p.is_deleted != 3 " +
                     "ORDER BY p.create_time DESC LIMIT ?, ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, sectionId);
@@ -178,7 +178,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE p.user_id = ? AND p.status != 3 " +
+                    "WHERE p.user_id = ? AND p.is_deleted != 3 " +
                     "ORDER BY p.create_time DESC LIMIT ?, ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
@@ -210,7 +210,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE p.status != 3 " +
+                    "WHERE p.is_deleted != 3 " +
                     "ORDER BY p.view_count DESC LIMIT ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, limit);
@@ -240,7 +240,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE p.status != 3 " +
+                    "WHERE p.is_deleted != 3 " +
                     "ORDER BY p.create_time DESC LIMIT ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, limit);
@@ -270,7 +270,7 @@ public class PostDaoImpl implements PostDao {
                     "FROM posts p " +
                     "LEFT JOIN users u ON p.user_id = u.id " +
                     "LEFT JOIN sections s ON p.section_id = s.id " +
-                    "WHERE (p.title LIKE ? OR p.content LIKE ?) AND p.status != 3 " +
+                    "WHERE (p.title LIKE ? OR p.content LIKE ?) AND p.is_deleted != 3 " +
                     "ORDER BY p.create_time DESC LIMIT ?, ?";
             pstmt = conn.prepareStatement(sql);
             String likeKeyword = "%" + keyword + "%";
@@ -399,7 +399,7 @@ public class PostDaoImpl implements PostDao {
 
         try {
             conn = DBUtil.getConnection();
-            String sql = "SELECT COUNT(*) FROM posts WHERE status != 3";
+            String sql = "SELECT COUNT(*) FROM posts WHERE is_deleted != 3";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
@@ -422,7 +422,7 @@ public class PostDaoImpl implements PostDao {
 
         try {
             conn = DBUtil.getConnection();
-            String sql = "SELECT COUNT(*) FROM posts WHERE section_id = ? AND status != 3";
+            String sql = "SELECT COUNT(*) FROM posts WHERE section_id = ? AND is_deleted != 3";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, sectionId);
             rs = pstmt.executeQuery();
@@ -446,7 +446,7 @@ public class PostDaoImpl implements PostDao {
 
         try {
             conn = DBUtil.getConnection();
-            String sql = "SELECT COUNT(*) FROM posts WHERE user_id = ? AND status != 3";
+            String sql = "SELECT COUNT(*) FROM posts WHERE user_id = ? AND is_deleted != 3";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
             rs = pstmt.executeQuery();

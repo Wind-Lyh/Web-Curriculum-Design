@@ -30,4 +30,10 @@ public interface CommentDao {
 
     // 统计用户评论数
     int countByUser(int userId);
+
+    /**
+     * 统计评论总数
+     * @return 评论总数
+     */
+    int countAll();
 }

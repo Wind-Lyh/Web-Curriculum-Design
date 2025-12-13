@@ -1,5 +1,6 @@
 package com.community.service;
 
+import com.community.model.Favorite;
 import com.community.model.Post;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public interface FavoriteService {
      * @param pageSize 每页大小
      * @return 收藏的帖子列表
      */
-    List<Post> getFavoritesByUser(int userId, int page, int pageSize);
+    List<Favorite> getFavoritesByUser(int userId, int page, int pageSize);
 
     /**
      * 获取帖子的收藏数

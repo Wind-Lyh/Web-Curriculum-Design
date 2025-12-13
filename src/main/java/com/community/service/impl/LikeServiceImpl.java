@@ -77,9 +77,10 @@ public class LikeServiceImpl implements LikeService {
 
         int result = likeDao.insert(like);
         if (result > 0) {
-            commentDao.update(commentId, "like_count", 1);
-
             Comment comment = commentDao.findById(commentId);
+            comment.setLikeCount(comment.getLikeCount() + 1);
+            commentDao.update(comment);
+
             if (comment != null && comment.getUserId() != userId) {
                 addLikePoints(comment.getUserId(), 3, "COMMENT_LIKED");
             }
@@ -92,7 +93,9 @@ public class LikeServiceImpl implements LikeService {
     public boolean unlikeComment(int userId, int commentId) {
         int result = likeDao.deleteByUserAndTarget(userId, "comment", commentId);
         if (result > 0) {
-            commentDao.update(commentId, "like_count", -1);
+            Comment comment = commentDao.findById(commentId);
+            comment.setLikeCount(comment.getLikeCount() - 1);
+            commentDao.update(comment);
         }
 
         return result > 0;
@@ -102,6 +105,12 @@ public class LikeServiceImpl implements LikeService {
     public boolean isLiked(int userId, String targetType, int targetId) {
         Like like = likeDao.findByUserAndTarget(userId, targetType, targetId);
         return like != null;
+    }
+
+    @Override
+    public int getLikeCount(String targetType, int targetId) {
+        int result = likeDao.countByTarget(targetType, targetId);
+        return result;
     }
 
     private void addLikePoints(int userId, int points, String type) {

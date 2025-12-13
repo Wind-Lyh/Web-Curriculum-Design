@@ -12,6 +12,7 @@ public class AdminLog {
     private String ipAddress;   // IP地址，对应admin_logs.ip_address
     private Date createTime;    // 操作时间，对应admin_logs.create_time，默认当前时间
 
+    public AdminLog() {}
     public Integer getId() {
         return id;
     }

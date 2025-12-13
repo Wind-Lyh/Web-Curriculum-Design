@@ -49,4 +49,6 @@ public interface UserDao {
 
     // 删除用户（逻辑删除）
     int delete(int id);
+
+    int updateAvatar(Integer userId, String avatarUrl);
 }

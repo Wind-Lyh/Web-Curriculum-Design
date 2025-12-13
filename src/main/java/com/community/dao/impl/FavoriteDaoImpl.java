@@ -185,14 +185,12 @@ public class FavoriteDaoImpl implements FavoriteDao {
             // 使用多表连接查询，获取帖子信息和关联的用户、版块信息
             String sql = "SELECT " +
                     "p.id, p.title, p.content, p.user_id, p.section_id, " +
-                    "p.view_count, p.like_count, p.comment_count, p.status, " +
+                    "p.view_count, p.like_count, p.comment_count, p.is_deleted, " +
                     "p.create_time, p.update_time, " +
-                    "u.username, u.nickname, u.avatar_url, " +
-                    "s.name as section_name " +
+                    "u.username, u.nickname, u.avatar_url " +
                     "FROM favorites f " +
                     "INNER JOIN posts p ON f.post_id = p.id " +
                     "INNER JOIN users u ON p.user_id = u.id " +
-                    "INNER JOIN sections s ON p.section_id = s.id " +
                     "WHERE f.user_id = ? " +
                     "ORDER BY f.create_time DESC " +
                     "LIMIT ?, ?";

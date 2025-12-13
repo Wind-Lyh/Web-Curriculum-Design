@@ -10,8 +10,11 @@ import com.community.model.VirtualGood;
 import com.community.model.Exchange;
 import com.community.service.PointsService;
 import com.community.util.StringUtil;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+import java.util.Map;
 
 public class PointsServiceImpl implements PointsService {
 
@@ -41,12 +44,12 @@ public class PointsServiceImpl implements PointsService {
         record.setDescription(StringUtil.isEmpty(description) ? "积分增加" : description);
         record.setCreateTime(new Date());
 
-        int result = pointsDao.insertPointsRecord(record);
-        if (result > 0) {
+        boolean result = pointsDao.insertPointsRecord(record);
+        if (result) {
             userDao.updatePoints(userId, points);
         }
 
-        return result > 0;
+        return result;
     }
 
     @Override
@@ -71,12 +74,12 @@ public class PointsServiceImpl implements PointsService {
         record.setDescription(StringUtil.isEmpty(description) ? "积分扣除" : description);
         record.setCreateTime(new Date());
 
-        int result = pointsDao.insertPointsRecord(record);
-        if (result > 0) {
+        boolean result = pointsDao.insertPointsRecord(record);
+        if (result ) {
             userDao.updatePoints(userId, -points);
         }
 
-        return result > 0;
+        return result;
     }
 
     @Override
@@ -128,8 +131,8 @@ public class PointsServiceImpl implements PointsService {
         exchange.setTotalCost(totalCost);
         exchange.setCreateTime(new Date());
 
-        int result = exchangeDao.insertExchange(exchange);
-        if (result <= 0) {
+        boolean result = exchangeDao.insertExchange(exchange);
+        if (!result) {
             throw new RuntimeException("兑换失败");
         }
 
@@ -149,7 +152,27 @@ public class PointsServiceImpl implements PointsService {
             limit = 10;
         }
 
-        return pointsDao.getPointsRanking(limit);
+        List<Map<String, Object>> rankingData = pointsDao.getPointsRanking(limit);
+        List<User> userList = new ArrayList<>();
+
+        int rank = 1; // 如果需要，您可以在这里添加排名
+        for (Map<String, Object> data : rankingData) {
+            User user = new User();
+            user.setId((Integer) data.get("user_id"));
+            user.setUsername((String) data.get("username"));
+            user.setNickname((String) data.get("nickname"));
+            user.setAvatarUrl((String) data.get("avatar_url"));
+            user.setPoints((Integer) data.get("points")); // 当前积分
+            user.setLevel((Integer) data.get("level"));
+
+            // 如果需要使用总积分，可以创建一个新字段或临时使用
+            // 这里使用 setPoints((Integer) data.get("total_points")) 来使用总积分
+
+            userList.add(user);
+            rank++; // 排名递增
+        }
+
+        return userList;
     }
 
     @Override

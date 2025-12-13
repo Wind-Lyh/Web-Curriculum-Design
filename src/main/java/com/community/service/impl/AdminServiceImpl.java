@@ -11,8 +11,12 @@ import com.community.model.Post;
 import com.community.model.Comment;
 import com.community.service.AdminService;
 import com.community.util.StringUtil;
+
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdminServiceImpl implements AdminService {
 
@@ -35,14 +39,27 @@ public class AdminServiceImpl implements AdminService {
     public DashboardStats getDashboardStats() {
         DashboardStats stats = new DashboardStats();
 
+        // 用户统计
         stats.setTotalUsers(userDao.count());
-        stats.setActiveUsers(userDao.countByCondition("status = 0"));
-        stats.setBannedUsers(userDao.countByCondition("status = 1"));
 
+        // 使用Map条件统计活跃用户（status=0）
+        Map<String, Object> activeCondition = new HashMap<>();
+        activeCondition.put("status", 0);
+        stats.setActiveUsers(userDao.countByCondition(activeCondition));
+
+        // 使用Map条件统计封禁用户（status=1）
+        Map<String, Object> bannedCondition = new HashMap<>();
+        bannedCondition.put("status", 1);
+        stats.setBannedUsers(userDao.countByCondition(bannedCondition));
+
+        // 帖子统计
         stats.setTotalPosts(postDao.count());
         stats.setTodayPosts(getTodayPostsCount());
+
+        // 评论统计
         stats.setTotalComments(commentDao.countAll());
 
+        // 访问统计
         stats.setDailyVisits(0);
         stats.setMonthlyVisits(0);
 
@@ -67,20 +84,16 @@ public class AdminServiceImpl implements AdminService {
 
         int offset = (page - 1) * pageSize;
 
-        StringBuilder condition = new StringBuilder();
+        // 构建条件Map
+        Map<String, Object> condition = new HashMap<>();
         if (!StringUtil.isEmpty(keyword)) {
-            condition.append("(username LIKE '%").append(keyword).append("%' OR ")
-                    .append("nickname LIKE '%").append(keyword).append("%' OR ")
-                    .append("email LIKE '%").append(keyword).append("%')");
+            condition.put("keyword", keyword);
         }
-
         if (!StringUtil.isEmpty(status)) {
-            if (condition.length() > 0) {
-                condition.append(" AND ");
-            }
-            condition.append("status = ").append(status);
+            condition.put("status", Integer.parseInt(status));
         }
 
+        // 使用search方法
         return userDao.search(keyword, offset, pageSize);
     }
 
@@ -100,12 +113,16 @@ public class AdminServiceImpl implements AdminService {
         if (result > 0) {
             AdminLog log = new AdminLog();
             log.setAdminId(getCurrentAdminId());
-            log.setAction("BAN_USER");
+            log.setActionType("ban_user");
             log.setTargetType("user");
             log.setTargetId(userId);
-            log.setDescription("封禁用户：" + user.getUsername() + "，原因：" + reason);
+            log.setDetails("封禁用户：" + user.getUsername() + "，原因：" + reason);
             log.setCreateTime(new Date());
-            adminDao.addAdminLog(log);
+            try {
+                adminDao.addAdminLog(log);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return result > 0;
@@ -127,12 +144,16 @@ public class AdminServiceImpl implements AdminService {
         if (result > 0) {
             AdminLog log = new AdminLog();
             log.setAdminId(getCurrentAdminId());
-            log.setAction("UNBAN_USER");
+            log.setActionType("UNBAN_USER");
             log.setTargetType("user");
             log.setTargetId(userId);
-            log.setDescription("解封用户：" + user.getUsername());
+            log.setDetails("解封用户：" + user.getUsername());
             log.setCreateTime(new Date());
-            adminDao.addAdminLog(log);
+            try {
+                adminDao.addAdminLog(log);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return result > 0;
@@ -152,12 +173,17 @@ public class AdminServiceImpl implements AdminService {
         if (result > 0) {
             AdminLog log = new AdminLog();
             log.setAdminId(getCurrentAdminId());
-            log.setAction("RESET_PASSWORD");
+            log.setActionType("RESET_PASSWORD");
             log.setTargetType("user");
             log.setTargetId(userId);
-            log.setDescription("重置用户密码：" + user.getUsername());
+            log.setDetails("重置用户密码：" + user.getUsername());
             log.setCreateTime(new Date());
-            adminDao.addAdminLog(log);
+            try {
+                adminDao.addAdminLog(log);
+            } catch (SQLException e) {
+                System.out.println("resetUserPassword错误");
+                throw new RuntimeException(e);
+            }
         }
 
         return result > 0;
@@ -175,12 +201,17 @@ public class AdminServiceImpl implements AdminService {
         if (result > 0) {
             AdminLog log = new AdminLog();
             log.setAdminId(getCurrentAdminId());
-            log.setAction("DELETE_POST");
+            log.setActionType("DELETE_POST");
             log.setTargetType("post");
             log.setTargetId(postId);
-            log.setDescription("删除帖子：" + post.getTitle());
+            log.setDetails("删除帖子：" + post.getTitle());
             log.setCreateTime(new Date());
-            adminDao.addAdminLog(log);
+            try {
+                adminDao.addAdminLog(log);
+            } catch (SQLException e) {
+                System.out.println("deletePost错误");
+                throw new RuntimeException(e);
+            }
         }
 
         return result > 0;
@@ -200,32 +231,45 @@ public class AdminServiceImpl implements AdminService {
 
             AdminLog log = new AdminLog();
             log.setAdminId(getCurrentAdminId());
-            log.setAction("DELETE_COMMENT");
+            log.setActionType("DELETE_COMMENT");
             log.setTargetType("comment");
             log.setTargetId(commentId);
-            log.setDescription("删除评论");
+            log.setDetails("删除评论");
             log.setCreateTime(new Date());
-            adminDao.addAdminLog(log);
+            try {
+                adminDao.addAdminLog(log);
+            } catch (SQLException e) {
+                System.out.println("deleteComment错误");
+                throw new RuntimeException(e);
+            }
         }
 
         return result > 0;
     }
 
     @Override
-    public List<AdminLog> getAdminLogs(int page, int pageSize) {
+    public List<AdminLog> getAdminLogs(int adminId, int page, int pageSize){
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             throw new IllegalArgumentException("分页参数错误");
         }
 
         int offset = (page - 1) * pageSize;
-        return adminDao.getAdminLogs(offset, pageSize);
+        try {
+            return adminDao.getAdminLogsWithAdminName(adminId,page,pageSize);
+        } catch (SQLException e) {
+            System.out.println("getAdminLogs错误");
+            throw new RuntimeException(e);
+        }
     }
 
     private int getTodayPostsCount() {
+        // 简化实现，返回0
         return 0;
     }
 
     private int getCurrentAdminId() {
+        // 需要从Session或ThreadLocal中获取当前管理员ID
+        // 简化处理，返回1
         return 1;
     }
 }

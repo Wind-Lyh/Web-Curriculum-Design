@@ -255,6 +255,29 @@ public class CommentDaoImpl implements CommentDao {
         return 0;
     }
 
+    @Override
+    public int countAll() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "SELECT COUNT(*) FROM comments WHERE status = 0";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return 0;
+    }
+
     /**
      * 将ResultSet转换为Comment对象
      */

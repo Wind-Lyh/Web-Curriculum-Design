@@ -525,10 +525,11 @@ public class PointsDaoImpl implements PointsDao {
     @Override
     public List<Map<String, Object>> getPointsRanking(int limit) {
         List<Map<String, Object>> ranking = new ArrayList<>();
-        String sql = "SELECT u.id, u.username, COALESCE(SUM(pr.change_amount), 0) as total_points " +
+        String sql = "SELECT u.id, u.username, u.nickname, u.avatar_url, u.points, u.level, " +
+                "COALESCE(SUM(pr.change_amount), 0) as total_points " +
                 "FROM users u " +
                 "LEFT JOIN points_records pr ON u.id = pr.user_id " +
-                "GROUP BY u.id, u.username " +
+                "GROUP BY u.id, u.username, u.nickname, u.avatar_url, u.points, u.level " +
                 "ORDER BY total_points DESC " +
                 "LIMIT ?";
 
@@ -542,12 +543,14 @@ public class PointsDaoImpl implements PointsDao {
             ps.setInt(1, limit);
             rs = ps.executeQuery();
 
-            int rank = 1;
             while (rs.next()) {
-                Map<String, Object> row = new HashMap<>();
-                row.put("rank", rank++);
+                Map<String, Object> row = new LinkedHashMap<>();
                 row.put("user_id", rs.getInt("id"));
                 row.put("username", rs.getString("username"));
+                row.put("nickname", rs.getString("nickname"));
+                row.put("avatar_url", rs.getString("avatar_url"));
+                row.put("points", rs.getInt("points"));
+                row.put("level", rs.getInt("level"));
                 row.put("total_points", rs.getInt("total_points"));
                 ranking.add(row);
             }
@@ -560,7 +563,6 @@ public class PointsDaoImpl implements PointsDao {
 
         return ranking;
     }
-
     // 辅助方法：获取用户积分记录总数
     @Override
     public int countPointsRecordsByUserId(Integer userId) {

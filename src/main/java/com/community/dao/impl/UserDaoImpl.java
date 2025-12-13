@@ -210,6 +210,28 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public int updateAvatar(Integer userId, String avatarUrl) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            // 更新用户的avatar_url字段
+            String sql = "UPDATE users SET avatar_url = ? WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, avatarUrl);
+            pstmt.setInt(2, userId);
+
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        } finally {
+            DBUtil.close(conn, pstmt, null);
+        }
+    }
+
+    @Override
     public int updateStatus(int userId, int status) {
         Connection conn = null;
         PreparedStatement pstmt = null;

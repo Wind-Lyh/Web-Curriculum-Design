@@ -1,5 +1,6 @@
 package com.community.controller;
 
+import com.community.model.Favorite;
 import com.community.model.User;
 import com.community.model.Post;
 import com.community.service.FavoriteService;
@@ -102,7 +103,7 @@ public class FavoriteServlet extends HttpServlet {
             pageSize = Integer.parseInt(sizeParam);
         }
 
-        List<Post> favorites = favoriteService.getFavoritesByUser(user.getId(), page, pageSize);
+        List<Favorite> favorites = favoriteService.getFavoritesByUser(user.getId(), page, pageSize);
 
         request.setAttribute("favorites", favorites);
         request.setAttribute("currentPage", page);

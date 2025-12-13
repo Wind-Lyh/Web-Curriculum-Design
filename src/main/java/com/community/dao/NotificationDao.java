@@ -64,4 +64,13 @@ public interface NotificationDao {
      * @return 影响的行数
      */
     int deleteNotification(int notificationId);
+
+    // 7.3 按类型分页查询通知（带总数统计）
+    int countNotificationsByType(int userId, String type);
+
+    // 8. 批量删除通知
+    int deleteNotifications(List<Integer> notificationIds);
+
+    // 8.1 按条件删除通知
+    int deleteNotificationsByCondition(int userId, String type, Integer daysAgo);
 }

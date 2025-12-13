@@ -8,6 +8,7 @@ public class BrowseHistory {
     private Integer postId;     // 帖子ID，对应browse_history.post_id，外键关联posts.id
     private Date browseTime;    // 浏览时间，对应browse_history.browse_time，默认当前时间
 
+    public BrowseHistory() {}
     public Integer getId() {
         return id;
     }
@@ -46,7 +47,4 @@ public class BrowseHistory {
         this.postId = postId;
         this.browseTime = browseTime;
     }
-
-
-
 }

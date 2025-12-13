@@ -72,7 +72,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public List<Post> getFavoritesByUser(int userId, int page, int pageSize) {
+    public List<Favorite> getFavoritesByUser(int userId, int page, int pageSize) {
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             throw new IllegalArgumentException("分页参数错误");
         }
