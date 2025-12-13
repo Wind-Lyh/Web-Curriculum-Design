@@ -1,6 +1,8 @@
 package com.community.dao;
 
 import com.community.model.Favorite;
+import com.community.model.Post;
+
 import java.util.List;
 
 public interface FavoriteDao {
@@ -21,4 +23,19 @@ public interface FavoriteDao {
 
     // 统计用户收藏数
     int countByUser(int userId);
+    /**
+     * 根据用户ID查询收藏的帖子列表（带分页）
+     * @param userId 用户ID
+     * @param offset 偏移量
+     * @param limit 限制数
+     * @return 帖子列表
+     */
+    List<Post> findPostsByUserId(int userId, int offset, int limit);
+
+    /**
+     * 统计帖子的收藏数
+     * @param postId 帖子ID
+     * @return 收藏数
+     */
+    int countByPost(int postId);
 }

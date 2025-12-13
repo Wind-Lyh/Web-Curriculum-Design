@@ -84,6 +84,16 @@
         <url-pattern>/user/*</url-pattern>
     </servlet-mapping>
 
+    <!-- 通知Servlet -->
+    <servlet>
+        <servlet-name>NotificationServlet</servlet-name>
+        <servlet-class>com.community.controller.NotificationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NotificationServlet</servlet-name>
+        <url-pattern>/notification/*</url-pattern>
+    </servlet-mapping>
+
     <!-- 帖子相关Servlet -->
     <servlet>
         <servlet-name>PostServlet</servlet-name>
@@ -122,16 +132,6 @@
     <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
         <url-pattern>/home</url-pattern>
-    </servlet-mapping>
-
-    <!-- 版块Servlet -->
-    <servlet>
-        <servlet-name>SectionServlet</servlet-name>
-        <servlet-class>com.community.controller.SectionServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SectionServlet</servlet-name>
-        <url-pattern>/section/*</url-pattern>
     </servlet-mapping>
 
     <!-- 点赞Servlet -->

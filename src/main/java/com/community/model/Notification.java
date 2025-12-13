@@ -12,21 +12,24 @@ public class Notification {
     private Integer isRead;     // 已读状态：0未读，1已读，对应notifications.is_read，默认false
     private Date createTime;    // 创建时间，对应notifications.create_time，默认当前时间
 
+    // 无参构造函数
     public Notification() {
-        this.isRead = 0;
-        this.createTime = new Date();
     }
 
-    public Notification(Integer userId, String type, String title, String content, Integer relatedId) {
-        this();
+    // 全参构造函数
+    public Notification(Integer id, Integer userId, String type, String title,
+                        String content, Integer relatedId, Integer isRead, Date createTime) {
+        this.id = id;
         this.userId = userId;
         this.type = type;
         this.title = title;
         this.content = content;
         this.relatedId = relatedId;
+        this.isRead = isRead;
+        this.createTime = createTime;
     }
 
-    // Getter和Setter方法
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -91,6 +94,7 @@ public class Notification {
         this.createTime = createTime;
     }
 
+    // toString方法
     @Override
     public String toString() {
         return "Notification{" +
@@ -98,7 +102,10 @@ public class Notification {
                 ", userId=" + userId +
                 ", type='" + type + '\'' +
                 ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", relatedId=" + relatedId +
                 ", isRead=" + isRead +
+                ", createTime=" + createTime +
                 '}';
     }
 }

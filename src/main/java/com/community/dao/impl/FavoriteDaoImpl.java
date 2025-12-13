@@ -2,6 +2,7 @@ package com.community.dao.impl;
 
 import com.community.dao.FavoriteDao;
 import com.community.model.Favorite;
+import com.community.model.Post;
 import com.community.util.DBUtil;
 
 import java.sql.*;
@@ -159,6 +160,101 @@ public class FavoriteDaoImpl implements FavoriteDao {
             String sql = "SELECT COUNT(*) FROM favorites WHERE user_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return 0;
+    }
+
+    @Override
+    public List<Post> findPostsByUserId(int userId, int offset, int limit) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        List<Post> postList = new ArrayList<>();
+
+        try {
+            conn = DBUtil.getConnection();
+            // 使用多表连接查询，获取帖子信息和关联的用户、版块信息
+            String sql = "SELECT " +
+                    "p.id, p.title, p.content, p.user_id, p.section_id, " +
+                    "p.view_count, p.like_count, p.comment_count, p.status, " +
+                    "p.create_time, p.update_time, " +
+                    "u.username, u.nickname, u.avatar_url, " +
+                    "s.name as section_name " +
+                    "FROM favorites f " +
+                    "INNER JOIN posts p ON f.post_id = p.id " +
+                    "INNER JOIN users u ON p.user_id = u.id " +
+                    "INNER JOIN sections s ON p.section_id = s.id " +
+                    "WHERE f.user_id = ? " +
+                    "ORDER BY f.create_time DESC " +
+                    "LIMIT ?, ?";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Post post = new Post();
+
+                // 设置帖子基本属性
+                post.setId(rs.getInt("id"));
+                post.setTitle(rs.getString("title"));
+                post.setContent(rs.getString("content"));
+                post.setUserId(rs.getInt("user_id"));
+                post.setSectionId(rs.getInt("section_id"));
+                post.setViewCount(rs.getInt("view_count"));
+                post.setLikeCount(rs.getInt("like_count"));
+                post.setCommentCount(rs.getInt("comment_count"));
+                post.setStatus(rs.getInt("status"));
+
+                // 设置时间字段
+                Timestamp createTime = rs.getTimestamp("create_time");
+                if (createTime != null) {
+                    post.setCreateTime(new Date(createTime.getTime()));
+                }
+
+                Timestamp updateTime = rs.getTimestamp("update_time");
+                if (updateTime != null) {
+                    post.setUpdateTime(new Date(updateTime.getTime()));
+                }
+
+                // 设置关联字段
+                post.setUsername(rs.getString("username"));
+                post.setNickname(rs.getString("nickname"));
+                post.setAvatarUrl(rs.getString("avatar_url"));
+                post.setSectionName(rs.getString("section_name"));
+
+                postList.add(post);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return postList;
+    }
+
+    @Override
+    public int countByPost(int postId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "SELECT COUNT(*) FROM favorites WHERE post_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, postId);
             rs = pstmt.executeQuery();
 
             if (rs.next()) {

@@ -40,4 +40,28 @@ public interface NotificationDao {
 
     // 5.2 获取用户未读通知分页
     List<Notification> getUnreadNotificationsByPage(Integer userId, int page, int pageSize);
+
+    /**
+     * 根据ID获取通知
+     * @param notificationId 通知ID
+     * @return 通知对象
+     */
+    Notification getNotificationById(int notificationId);
+
+    /**
+     * 按类型分页查询通知
+     * @param userId 用户ID
+     * @param type 通知类型
+     * @param offset 偏移量
+     * @param limit 限制数
+     * @return 通知列表
+     */
+    List<Notification> getNotificationsByType(int userId, String type, int offset, int limit);
+
+    /**
+     * 删除通知
+     * @param notificationId 通知ID
+     * @return 影响的行数
+     */
+    int deleteNotification(int notificationId);
 }
