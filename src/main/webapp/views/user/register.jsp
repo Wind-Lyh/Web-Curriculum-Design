@@ -3,15 +3,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="false" %>
 <%
 
-//    if (exception != null) {
-//        out.println("<h3>错误信息：</h3>");
-//        out.println("<pre>" + exception.getMessage() + "</pre>");
-//        out.println("<h3>堆栈跟踪：</h3>");
-//        StringWriter sw = new StringWriter();
-//        PrintWriter pw = new PrintWriter(sw);
-//        exception.printStackTrace(pw);
-//        out.println("<pre>" + sw.toString() + "</pre>");
-//    }
     System.out.println("123456789");
 
     String contextPath = request.getContextPath();
@@ -199,18 +190,37 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-top: 10px;
+            background-color: black; /* 背景颜色设置为黑色 */
+            color: white; /* 字体颜色设置为白色 */
+            border: none; /* 移除边框 */
+            cursor: pointer; /* 鼠标悬停时显示可点击效果 */
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            /* 去掉动态效果，保留原样 */
+            background-color: black; /* 保持黑色背景 */
+            color: white; /* 保持白色字体 */
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            /* 去掉按下时的动态效果 */
+            background-color: black;
+            color: white;
+        }
+
+        /* 在CSS的.btn-primary规则后添加 */
+        .btn-primary:disabled {
+            background-color: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
         }
 
         .login-link {
@@ -377,161 +387,168 @@
     System.out.println("123456789");
 %>
 
-<script>
-    const contextPath = '<%= contextPath %>';
-    let usernameExists = false;
-    let emailExists = false;
+<script type="text/javascript">
+    // ===== 基础变量 =====
+    var contextPath = '<%= contextPath %>';
 
-    // 检查用户名是否存在
-    function checkUsername(username) {
-        const errorElement = document.getElementById('usernameError');
-        const inputElement = document.querySelector('input[name="username"]');
+    // 修改：初始化状态为false
+    var state = {
+        username: false,
+        email: false,
+        password: false,
+        confirmPassword: false
+    };
 
-        if (!username.trim()) {
-            errorElement.textContent = '用户名不能为空';
-            inputElement.classList.add('error');
-            inputElement.classList.remove('success');
-            usernameExists = false;
-            return;
-        }
+    // 添加：页面加载完成后执行的初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始触发验证
+        checkUsername(document.getElementsByName('username')[0].value);
+        checkEmail(document.getElementsByName('email')[0].value);
+        checkPassword();
+        updateSubmitState();
 
-        if (username.length < 3) {
-            errorElement.textContent = '用户名至少3个字符';
-            inputElement.classList.add('error');
-            inputElement.classList.remove('success');
-            usernameExists = false;
-            return;
-        }
-
-        // 显示检查中
-        errorElement.innerHTML = '<span style="color:#666;">检查中...</span>';
-        inputElement.classList.remove('error');
-        inputElement.classList.remove('success');
-
-        // 发送AJAX请求检查用户名 - 修改为字符串拼接
-        fetch(contextPath + '/register?action=checkUsername&username=' + encodeURIComponent(username))
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    errorElement.textContent = '用户名已存在';
-                    inputElement.classList.add('error');
-                    inputElement.classList.remove('success');
-                    usernameExists = true;
-                } else {
-                    errorElement.innerHTML = '<span style="color:#2ed573;">✓ 用户名可用</span>';
-                    inputElement.classList.remove('error');
-                    inputElement.classList.add('success');
-                    usernameExists = false;
-                }
-            })
-            .catch(error => {
-                errorElement.textContent = '检查失败，请稍后重试';
-                inputElement.classList.add('error');
-                inputElement.classList.remove('success');
-                usernameExists = false;
-            });
-    }
-
-    // 检查邮箱是否存在
-    function checkEmail(email) {
-        const errorElement = document.getElementById('emailError');
-        const inputElement = document.querySelector('input[name="email"]');
-
-        if (!email.trim()) {
-            errorElement.textContent = '邮箱不能为空';
-            inputElement.classList.add('error');
-            inputElement.classList.remove('success');
-            emailExists = false;
-            return;
-        }
-
-        // 简单的邮箱格式验证
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            errorElement.textContent = '邮箱格式不正确';
-            inputElement.classList.add('error');
-            inputElement.classList.remove('success');
-            emailExists = false;
-            return;
-        }
-
-        // 显示检查中
-        errorElement.innerHTML = '<span style="color:#666;">检查中...</span>';
-        inputElement.classList.remove('error');
-        inputElement.classList.remove('success');
-
-        // 发送AJAX请求检查邮箱 - 修改为字符串拼接
-        fetch(contextPath + '/register?action=checkEmail&email=' + encodeURIComponent(email))
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    errorElement.textContent = '邮箱已被注册';
-                    inputElement.classList.add('error');
-                    inputElement.classList.remove('success');
-                    emailExists = true;
-                } else {
-                    errorElement.innerHTML = '<span style="color:#2ed573;">✓ 邮箱可用</span>';
-                    inputElement.classList.remove('error');
-                    inputElement.classList.add('success');
-                    emailExists = false;
-                }
-            })
-            .catch(error => {
-                errorElement.textContent = '检查失败，请稍后重试';
-                inputElement.classList.add('error');
-                inputElement.classList.remove('success');
-                emailExists = false;
-            });
-    }
-
-    // 表单提交验证
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const submitBtn = document.getElementById('submitBtn');
-        const loading = document.getElementById('submitLoading');
-        const btnText = submitBtn.querySelector('span');
-
-        // 禁用提交按钮，显示加载动画
-        submitBtn.disabled = true;
-        btnText.textContent = '注册中...';
-        loading.style.display = 'block';
-
-        // 收集表单数据
-        const formData = new FormData(this);
-
-        // 发送注册请求 - 修改为字符串拼接
-        fetch(contextPath + '/register', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                if (response.redirected) {
-                    // 服务器返回了重定向
-                    window.location.href = response.url;
-                } else {
-                    return response.text();
-                }
-            })
-            .then(html => {
-                // 如果返回的是HTML（注册失败），替换当前页面
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                console.error('注册失败:', error);
-                alert('注册失败，请稍后重试');
-
-                // 恢复按钮状态
-                submitBtn.disabled = false;
-                btnText.textContent = '立即注册';
-                loading.style.display = 'none';
-            });
+        // 确保按钮可用（如果需要立即可用，可以注释下面这行）
+        // submitBtn.disabled = false;
     });
+
+    var usernameTimer = null;
+    var emailTimer = null;
+
+    var form = document.getElementById('registerForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var loading = document.getElementById('submitLoading');
+    var btnText = submitBtn.getElementsByTagName('span')[0];
+
+    // ===== 工具方法 =====
+    function setError(input, msg, errorId) {
+        input.className = 'form-input error';
+        document.getElementById(errorId).innerHTML = msg;
+    }
+
+    function setSuccess(input, msg, errorId) {
+        input.className = 'form-input success';
+        document.getElementById(errorId).innerHTML = msg || '';
+    }
+
+    function updateSubmitState() {
+        var ok = true;
+        for (var k in state) {
+            if (!state[k]) {
+                ok = false;
+                break;
+            }
+        }
+        submitBtn.disabled = !ok;
+    }
+
+    // ===== 用户名校验（防抖）=====
+    window.checkUsername = function (value) {
+        clearTimeout(usernameTimer);
+
+        var input = document.getElementsByName('username')[0];
+        var errorId = 'usernameError';
+
+        if (!value || value.trim() === '') {
+            state.username = false;
+            setError(input, '用户名不能为空', errorId);
+            updateSubmitState();
+            return;
+        }
+
+        if (value.length < 3) {
+            state.username = false;
+            setError(input, '至少 3 个字符', errorId);
+            updateSubmitState();
+            return;
+        }
+
+        document.getElementById(errorId).innerHTML = '检查中...';
+
+        usernameTimer = setTimeout(function () {
+            var url = contextPath + '/register?action=checkUsername&username='
+                + encodeURIComponent(value);
+
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.exists) {
+                        state.username = false;
+                        setError(input, '用户名已存在', errorId);
+                    } else {
+                        state.username = true;
+                        setSuccess(input, '✓ 用户名可用', errorId);
+                    }
+                    updateSubmitState();
+                })
+                .catch(function () {
+                    state.username = false;
+                    setError(input, '校验失败', errorId);
+                    updateSubmitState();
+                });
+        }, 300);
+    };
+
+    // ===== 邮箱校验（防抖）=====
+    window.checkEmail = function (value) {
+        clearTimeout(emailTimer);
+
+        var input = document.getElementsByName('email')[0];
+        var errorId = 'emailError';
+
+        // var regex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+        var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!regex.test(value)) {
+            state.email = false;
+            setError(input, '邮箱格式不正确', errorId);
+            updateSubmitState();
+            return;
+        }
+
+        document.getElementById(errorId).innerHTML = '检查中...';
+
+        emailTimer = setTimeout(function () {
+            var url = contextPath + '/register?action=checkEmail&email='
+                + encodeURIComponent(value);
+
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.exists) {
+                        state.email = false;
+                        setError(input, '邮箱已被注册', errorId);
+                    } else {
+                        state.email = true;
+                        setSuccess(input, '✓ 邮箱可用', errorId);
+                    }
+                    updateSubmitState();
+                })
+                .catch(function () {
+                    state.email = false;
+                    setError(input, '校验失败', errorId);
+                    updateSubmitState();
+                });
+        }, 300);
+    };
+
+    // ===== 密码校验 =====
+    window.checkPassword = function () {
+        var pwd = document.getElementsByName('password')[0].value;
+        var cpwd = document.getElementsByName('confirmPassword')[0].value;
+
+        state.password = pwd.length >= 6;
+        state.confirmPassword = pwd === cpwd && cpwd.length > 0;
+
+        updateSubmitState();
+    };
+
+    // ===== 提交（不 fetch，不假死）=====
+    form.onsubmit = function () {
+        submitBtn.disabled = true;
+        btnText.innerHTML = '注册中...';
+        loading.style.display = 'block';
+        return true; // 让浏览器原生提交
+    };
+    console.log('contextPath==', contextPath);
 </script>
-<%
-    System.out.println("123456789");
-%>
 </body>
 </html>

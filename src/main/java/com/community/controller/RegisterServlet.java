@@ -164,7 +164,7 @@ public class RegisterServlet extends HttpServlet {
 
         if (result > 0) {
             // 注册成功，重定向到登录页面
-            response.sendRedirect(request.getContextPath() + "/login.jsp?register=success");
+            response.sendRedirect(request.getContextPath() + "/views/index.jsp?register=success");
         } else {
             // 注册失败
             request.setAttribute("error", "注册失败，请稍后重试");
